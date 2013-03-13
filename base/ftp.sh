@@ -1,5 +1,10 @@
 #!/bin/bash
 
+###
+### sh ftp.sh get /home/admin/abc.txt   get file abc.txt from ftp and save it to /home/admin/abc.txt
+### sh ftp.sh put /home/admin/abc.txt   upload abc.txt(location /home/admin/abc.txt) to ftp and filenamed abc.txt
+###
+
 ##upload
 ftpput () {
 filename=$1
