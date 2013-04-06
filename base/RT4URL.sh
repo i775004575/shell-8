@@ -50,6 +50,14 @@ exit 1
 
 fi
 
+if [ $1 = "-pipe" ];then
+
+handle
+
+exit 1
+
+fi
+
 if [ $1 = "all" ];then
 
 log=$log

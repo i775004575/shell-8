@@ -198,3 +198,43 @@ applog)
 ;;
 esac
 }
+
+##################################################
+##                                              ##
+##               for do commond                 ##
+##                                              ##
+##################################################
+
+
+fordo(){
+commond=$1
+trytimes=`getStringWithDefault "100" $2`
+sleeptime=`getStringWithDefault "1s" $3`
+
+for i in `seq $trytimes`
+do
+$commond
+sleep $sleeptime
+done
+}
+
+##################################################
+##                                              ##
+##               tail files                     ##
+##                                              ##
+##################################################
+
+tailfiles(){
+para=$@
+lines=`echo $para | awk '{print "-"$1}'`
+para=`echo $para | awk '{for(i=2;i<=NF;i++)r=r" "$i}END{print r}' `
+clear
+for i in `echo $para`
+do
+echo ""
+echo "========================================="$i"========================================="
+echo ""
+tail $lines $i
+done
+}
+
