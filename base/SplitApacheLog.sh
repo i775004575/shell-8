@@ -23,7 +23,7 @@ today=`date +%Y-%m-%d`
 
 log=$1
 items=$2
-items=`echo $items|awk -F"," 'BEGIN{map["ip"]="$1";map["cost"]="$2";map["time"]="$4";map["method"]="$6";map["url"]="$7";map["status"]="$8";map["size"]="$9";map["ref"]="$10";map["ua"]="$11";map["uri"]="uri";map["refuri"]="refuri";map["date"]="date"}{for(i=1;i<=NF;i++){res=res""map[$i]; if(i<NF)res=res","}}END{print res}'`
+items=`echo $items|awk -F"," 'BEGIN{map[all]="$0";map["ip"]="$1";map["cost"]="$2";map["time"]="$4";map["method"]="$6";map["url"]="$7";map["status"]="$8";map["size"]="$9";map["ref"]="$10";map["ua"]="$11";map["uri"]="uri";map["refuri"]="refuri";map["date"]="date"}{for(i=1;i<=NF;i++){res=res""map[$i]; if(i<NF)res=res","}}END{print res}'`
 
 if [ -z "$3" ];then
 sep="\n"
