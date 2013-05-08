@@ -1,14 +1,17 @@
 #!/bin/bash
 export LC_ALL=C
 
-unit=$1
-file=$2
+file=$1
+unit=$2
 ignore=$3
 
 if [ -z "$ignore" ];then
 ignore="0.1"
 fi
 
+if [ -z "$unit" ];then
+unit="1"
+fi
 
 echo "==============================================================================="
 echo ""
