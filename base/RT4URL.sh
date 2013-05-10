@@ -2,8 +2,19 @@
 
 export LC_ALL=C
 
+
 handle(){
-awk '{total++;a=tolower(substr($7,0,index($7,"?")-1));if(a==""){a=substr($7,0,length($7)-1);}map0[a]++;a=a"~"$8;map1[a]+=$2;map2[a]++;map3[a]+=$9;} END{for(k in map1){if(map2[k]>5){printf("%-65s\t %s\t %.1f%\t %d\t %.1f%\t %.1f\t %.1f\n",substr(k,0,index(k,"~")-1),substr(k,index(k,"~")+1),map2[k]*100/map0[substr(k,0,index(k,"~")-1)],map2[k],map2[k]*100/total,map1[k]/(map2[k]*1000),map3[k]/(map2[k]*1000));}}}' | sort -k4nr
+awk '
+{
+total++;a=tolower(substr($7,0,index($7,"?")-1));if(a==""){a=substr($7,0,length($7)-1);}
+map0[a]++;a=a"~"$8;map1[a]+=$2;map2[a]++;map3[a]+=$9;
+} 
+END{
+	for(k in map1){if(map2[k]>5){
+		printf("%-65s\t %s\t %.1f%\t %d\t %.1f%\t %.1f\t %.1f\n",substr(k,0,index(k,"~")-1),substr(k,index(k,"~")+1),map2[k]*100/map0[substr(k,0,index(k,"~")-1)],map2[k],map2[k]*100/total,map1[k]/(map2[k]*1000),map3[k]/(map2[k]*1000));
+	}
+}
+}' | sort -k4nr
 }
 
 path="/home/admin/cai/logs/cronolog/"
@@ -69,4 +80,3 @@ log=$1
 fi
 
 cat $log | handle
-
