@@ -19,11 +19,12 @@ echo "" | awk '{printf("%-30s\t %-15s\t %s\t %s\n","Range","Times","Rate","AddUp
 echo ""
 echo "==============================================================================="
 
-awk -v unit="$unit" '{key=$1/unit;printf("%d\n",key)}' $file | awk -v unit="$unit"  -v ignore="$ignore" '
+awk -v unit="$unit"  -v ignore="$ignore" '
 BEGIN{
 	max=0;min=0
 }
 {
+	$1=int($1/unit);
 	map[$1]++;total++;
 	if($1>max){max=$1;}
 	if($1<min){min=$1;}
@@ -40,4 +41,4 @@ END{
 			}
 		}
 	}
-}'
+}' $file
