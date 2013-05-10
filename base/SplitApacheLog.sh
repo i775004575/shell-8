@@ -25,10 +25,10 @@ BEGIN{
 	\$4=substr(\$4,14);
 	\$6=substr(\$6,2);
 	\$7=substr(\$7,0,length(\$7)-1);
-	uri=tolower(substr(\$7,0,index(\$7,\"?\")-1)); 
+	uri=substr(\$7,0,index(\$7,\"?\")-1); 
 	if(uri==\"\"){uri=\$7;}
 	\$10=substr(\$10,2,length(\$10)-2);
-	refuri=tolower(substr(\$10,0,index(\$10,\"?\")-1)); 
+	refuri=substr(\$10,0,index(\$10,\"?\")-1); 
 	if(refuri==\"\"){refuri=\$10;}
 	tmpr=\"\";
 	for(i=11;i<=NF;i++){tmpr=tmpr\$i\" \";}
