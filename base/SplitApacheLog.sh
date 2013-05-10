@@ -48,6 +48,10 @@ defaultlog=$path"/"$year"/"$month"/"$today"-taobao-access_log"
 log=$1
 items=$2
 sep=$3
+if [ -z "$1" ];then
+echo "Params Missing!!!"
+exit 0
+fi
 if [ -z "$2" ];then
 items="all"
 fi
