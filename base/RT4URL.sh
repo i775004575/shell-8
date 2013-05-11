@@ -3,6 +3,7 @@ export LC_ALL=C
 
 handle(){
 file=$1
+paixu=$2
 awk '
 {
 	total++;
@@ -23,7 +24,7 @@ END{
 			map1[k]/(map2[k]*1000),map3[k]/(map2[k]*1000));
 		}
 	}
-}' $file | sort -k5nr
+}' $file | sort -k${paixu}nr
 }
 
 path="/home/admin/cai/logs/cronolog"
@@ -45,18 +46,42 @@ echo ""
 echo  "===================================================================================================================================="
 echo ""
 
+
+
 if [ -z "$1" ];then
-tail -"${count}"  $log | handle 
+mode="-10mdef"
+else
+mode=$1
+fi
+
+paixu=`echo $2 | awk '
+BEGIN{
+	map["-sorturl"]="1";
+	map["-sortpv"]="5";
+	map["-sortrt"]="7";
+	map["-sortsize"]="8";
+}
+{
+	result=map[$1];
+	if(result==""){
+		result="5"
+	}
+	print result;
+}'`
+
+
+if [ $mode = "-10mdef" ];then
+tail -"${count}"  $log | handle " "  $paixu
 exit 1
 fi
-if [ $1 = "-pipe" ];then
-handle
+if [ $mode = "-pipe" ];then
+handle " " $paixu
 exit 1
 fi
-if [ $1 = "-def" ];then
+if [ $mode = "-def" ];then
 log=$log
 else
 log=$1
 fi
-handle $log
+handle $log $paixu
 
