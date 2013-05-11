@@ -29,7 +29,7 @@ BEGIN{
 	if($1<min||min==""){min=$1;}
 }
 END{
-	tmp1=0;tmp2=0;start=0;
+	tmp1=0;tmp2=0;start=min;
 	for(i=min;i<=max;i++){
 		if(map[i]!=""){
 			tmp1=tmp1+map[i];tmp2=tmp2+map[i];
