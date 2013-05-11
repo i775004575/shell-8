@@ -2,7 +2,7 @@
 export LC_ALL=C
 
 ###
-###  items:  ip cost time method url status size ref ua uri refuri date all
+###  items:  ip rt time date method url uri status size ref refuri ua extra all
 ###
 ###  sh sp.sh -def ip,time,ref 
 ###  sh sp.sh -deftail ip,time,ref 
@@ -32,7 +32,14 @@ BEGIN{
 	if(refuri==\"\"){refuri=\$10;}
 	tmpr=\"\";
 	for(i=11;i<=NF;i++){tmpr=tmpr\$i\" \";}
-	\$11=substr(tmpr,2,length(tmpr)-3);
+	tmpr=substr(tmpr,2,length(tmpr)-3);
+	if(index(tmpr,\"\\\"\")>0){
+		ua=substr(tmpr,0,index(tmpr,\"\\\"\")-1);
+		extra=substr(\$NF,2,length(\$NF)-2);
+	}else{
+		ua=tmpr;
+		extra=\"-\";
+	}
 	print $items
 }"  $file
 }
@@ -63,17 +70,18 @@ items=`echo $items|awk -F"," '
 BEGIN{
 	map["all"]="$0";
 	map["ip"]="$1";
-	map["cost"]="$2";
+	map["rt"]="$2";
 	map["time"]="$4";
+        map["date"]="date";
 	map["method"]="$6";
 	map["url"]="$7";
+ 	map["uri"]="uri";
 	map["status"]="$8";
 	map["size"]="$9";
 	map["ref"]="$10";
-	map["ua"]="$11";
-	map["uri"]="uri";
 	map["refuri"]="refuri";
-	map["date"]="date"
+        map["ua"]="ua";
+	map["extra"]="extra";
 }
 {
 	for(i=1;i<=NF;i++){
