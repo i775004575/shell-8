@@ -11,6 +11,10 @@ fi
 if [ -z "$ignore" ];then
 ignore="0.1"
 fi
+if [ -z "$addupignore" ];then
+addupignore="100"
+fi
+
 
 echo "==============================================================================="
 echo ""
@@ -18,7 +22,7 @@ echo "" | awk '{printf("%-30s\t %-15s\t %s\t %s\n","Range","Times","Rate","AddUp
 echo ""
 echo "==============================================================================="
 
-awk -v unit="$unit"  -v ignore="$ignore" '
+awk -v unit="$unit"  -v ignore="$ignore" -v addupignore="$addupignore" '
 BEGIN{
 	max="";min="";
 }
@@ -33,7 +37,7 @@ END{
 	for(i=min;i<=max;i++){
 		if(map[i]!=""){
 			tmp1=tmp1+map[i];tmp2=tmp2+map[i];
-			if(map[i]*100/total>ignore||i==max){
+			if(map[i]*100/total>ignore || (map[i]+tmp2)*100/total >addupignore || i==max){
 				printf("%-30s\t %-15s\t %.2f%\t %.2f%\n",start*unit"~"(i+1)*unit,tmp2,tmp2*100/total,tmp1*100/total);
 				start=i+1;tmp2=0;
 			}
