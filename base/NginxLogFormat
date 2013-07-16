@@ -1,2 +1,4 @@
-log_format              proxyformat    "$remote_addr $request_time_usec $http_x_readtime [$time_local] \"$request_method http://$host$request_uri\" $s
-tatus $body_bytes_sent \"$http_referer\" \"$http_user_agent\"";
+log_format              proxyformat    "$remote_addr $request_time_usec $http_x_readtime [$time_local] \"$request_method http://$host$request_uri\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\"";
+
+
+LogFormat "%h %D %l %t \"%m http://%v%U\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
