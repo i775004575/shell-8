@@ -1,1 +1,1 @@
-$remote_addr|$request_time_usec|$http_x_readtime|$time_local|$request_method|$host|$request_uri|$status|$body_bytes_sent|$http_referer|$http_user_agent
+format=$remote_addr|$request_time_usec|$http_x_readtime|$time_local|$request_method|$host|$request_uri|$status|$body_bytes_sent|$http_referer|$http_user_agent

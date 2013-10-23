@@ -6,13 +6,13 @@
 
 ## -i the alias name of the fields which you want to get from the log file *
 
-## -s split char for log format str and access log file *
+## -s field separator for log format str and access log file *
 
-## -m log format str in apache|nginx conf *
+## -m the file path which save the log format str *
 
 --------------------------------------------------------------------------------------------------------------------
 
-sh z.sh -f accesslog -c apachefield.conf -i "url,ua" -s "|" -m "%h|%D|%l|%t|%m|%v%U|%>s|%O|%{Referer}i|%{User-Agent}i"
+sh z.sh -f accesslog -c apachefield.conf -i "url,ua" -s "|" -m apachelogformat"
 
 
 ###################

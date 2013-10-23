@@ -4,6 +4,7 @@ export LC_ALL=C
 logfilepath=""
 conffilepath=""
 logformatstr=""
+logformatfile=""
 items=""
 spstr=""
 
@@ -17,7 +18,8 @@ do
 	conffilepath=$OPTARG
 	;;
     "m")
-	logformatstr=$OPTARG
+	logformatfile=$OPTARG
+	logformatstr=`awk -F'=' '$1=="format"{print $2}' $logformatfile`
 	;;
     "i")
 	items=$OPTARG

@@ -1,1 +1,1 @@
-%h|%D|%l|%t|%m|http://%v%U|%>s|%O|%{Referer}i|%{User-Agent}i
+format=%h|%D|%t|%m|%v|%U|%q|%>s|%O|%{Referer}i|%{User-Agent}i

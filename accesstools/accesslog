@@ -1,0 +1,6 @@
+27.159.208.62|760832|[23/Oct/2013:16:59:46 +0800]|GET|aliwai.net|/connect.php|?mod=login&op=init&referer=forum.php&statfrom=login_simple|302|955|http://www.aliwai.net/member.php?mod=newmember|Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1;)
+27.159.208.175|1205|[23/Oct/2013:16:59:55 +0800]|GET|aliwai.net|/index.php||301|313|-|Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1;)
+27.159.208.175|46807|[23/Oct/2013:17:00:00 +0800]|GET|aliwai.net|/forum.php||200|6713|http://aliwai.net/member.php?mod=register|Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1;)
+27.159.208.175|87447|[23/Oct/2013:17:00:00 +0800]|GET|aliwai.net|/member.php|?mod=logging&action=login|200|5480|http://aliwai.net/|Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1;)
+27.159.208.175|42805|[23/Oct/2013:17:00:00 +0800]|GET|aliwai.net|/member.php|?mod=newmember|302|759|http://aliwai.net/|Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1;)
+27.159.208.175|546346|[23/Oct/2013:17:00:01 +0800]|GET|aliwai.net|/connect.php|?mod=login&op=init&referer=forum.php&statfrom=login_simple|302|957|http://aliwai.net/member.php?mod=newmember|Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1;)
