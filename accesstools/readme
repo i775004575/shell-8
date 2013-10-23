@@ -1,3 +1,11 @@
+###################
+
+The accuracy field separator is very very important!!!
+
+###################
+
+
+
 ## for example
 
 ## -f accesslog file path * 
@@ -12,13 +20,11 @@
 
 ## -n the new separator for output
 
---------------------------------------------------------------------------------------------------------------------
 
-sh z.sh -f accesslog -c apachefield.conf -i "url,ua" -s "|" -m apachelogformat" -n "|"
+###### 分离提取字段
 
+sh z.sh -f accesslog -c apachefield.conf -i "url,ua" -s "|" -m apachelogformat -n "|"
 
-###################
+###### 统计工具
 
-The accuracy field separator is very very important!!!
-
-###################
+sh y.sh -f accesslog -c apachefield.conf -m apachelogformat -s "|"
