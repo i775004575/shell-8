@@ -8,7 +8,7 @@ The accuracy field separator is very very important!!!
 
 ## for example
 
-## -f accesslog file path * 
+## -f accesslog file path 
 
 ## -c field alias conf * 
 
@@ -18,7 +18,7 @@ The accuracy field separator is very very important!!!
 
 ## -m the file path which save the log format str *
 
-## -n the new separator for output
+## -n the new separator for output *
 
 
 ###### 分离提取字段
@@ -27,4 +27,4 @@ sh z.sh -f accesslog -c apachefield.conf -i "url,ua" -s "|" -m apachelogformat -
 
 ###### 统计工具
 
-sh y.sh -f accesslog -c apachefield.conf -m apachelogformat -s "|"
+sh y.sh -f accesslog -c apachefield.conf -m apachelogformat -s "|" -S url|pv|rt|size

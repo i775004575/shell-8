@@ -6,8 +6,9 @@ conffilepath=""
 logformatstr=""
 logformatfile=""
 spstr=""
+paixu=""
 
-while getopts "f:c:m:s:" optname 
+while getopts "f:c:m:s:S:" optname 
 do 
     case "$optname" in
     "f")
@@ -23,8 +24,27 @@ do
     "s")
 	spstr=$OPTARG
 	;;
+    "S")
+	paixu=$OPTARG
+	;;
     esac
 done 
+
+paixu=`echo $paixu | awk '
+	BEGIN{
+                map["url"]="1";
+                map["pv"]="5";
+                map["rt"]="7";
+                map["size"]="8";
+        }
+        {
+                result=map[$1];
+                if(result==""){
+                        result="5"
+                }
+                print result;
+        }'`
+
 
 items="vhost,uri,method,status,cost,size"
 
@@ -88,5 +108,4 @@ END{
 			map1[k]/(map2[k]*1000),map3[k]/(map2[k]*1000));
 		}
 	}
-}' $logfilepath
-
+}' $logfilepath | sort -k${paixu}nr
