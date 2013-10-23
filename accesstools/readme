@@ -12,7 +12,7 @@
 
 --------------------------------------------------------------------------------------------------------------------
 
-sh z.sh -f accesslog -c apachefield.conf -i "url,ua" -s "|" -m apachelogformat"
+sh z.sh -f accesslog -c apachefield.conf -i "url,ua" -s "|" -m apachelogformat" -n "|"
 
 
 ###################

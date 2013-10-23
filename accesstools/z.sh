@@ -7,13 +7,14 @@ logformatstr=""
 logformatfile=""
 items=""
 spstr=""
+outputspstr=""
 
-while getopts "f:c:m:i:s:" optname 
+while getopts "f:c:m:i:s:n:" optname 
 do 
-    case "$optname" in 
-    "f") 
+    case "$optname" in
+    "f")
 	logfilepath=$OPTARG
-        ;; 
+        ;;
     "c")
 	conffilepath=$OPTARG
 	;;
@@ -27,7 +28,10 @@ do
     "s")
 	spstr=$OPTARG
 	;;
-    esac 
+    "n")
+	outputspstr=$OPTARG
+	;;
+    esac
 done 
 
 items=`awk -v its="$items" -v fmt="$logformatstr" -v spstr="$spstr" -F'=' '
@@ -50,4 +54,4 @@ END{
 	print res;
 }' $conffilepath`
 
-awk -F"$spstr" "{print $items}" $logfilepath
+awk -F"$spstr" -v nsp="$outputspstr" "BEGIN{OFS=nsp;} {print $items;}" $logfilepath
