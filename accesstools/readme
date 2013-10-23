@@ -10,6 +10,8 @@
 
 ## -m the file path which save the log format str *
 
+## -n the new separator for output
+
 --------------------------------------------------------------------------------------------------------------------
 
 sh z.sh -f accesslog -c apachefield.conf -i "url,ua" -s "|" -m apachelogformat" -n "|"
