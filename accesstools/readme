@@ -14,16 +14,14 @@ The accuracy field separator is very very important!!!
 
 ## -i the alias name of the fields which you want to get from the log file *
 
-## -s field separator for log format str and access log file *
+## -m the file path which save the log separator format str *
 
-## -m the file path which save the log format str *
-
-## -n the new separator for output *
+## -s the new separator for output *
 
 
 ###### 分离提取字段
 
-sh z.sh -f accesslog -c apachefield.conf -i "url,ua" -s "|" -m apachelogformat -n "|"
+sh z.sh -f accesslog -c field1.conf -i "url,ua" -s "|" -m format1.conf
 
 ###### 统计工具
 
