@@ -30,6 +30,8 @@ do
     esac
 done 
 
+outputspstr=`echo $outputspstr | awk '{if($1==""){print " "}}' `
+
 items=`awk -v its="$items" -F'=' '
 BEGIN{
 	split(its,arrayitems,",");
@@ -40,8 +42,10 @@ BEGIN{
 END{
 	res="";
 	for(i=1;i<=length(arrayitems);i++){
-		res=res""map[arrayitems[i]];
-		if(i<length(arrayitems)){res=res",";}
+		if(map[arrayitems[i]]!=""){
+		  res=res""map[arrayitems[i]];
+		  if(i<length(arrayitems)){res=res",";}
+		}
 	}
 	print res;
 }' $conffilepath`

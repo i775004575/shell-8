@@ -16,13 +16,24 @@ The accuracy field separator is very very important!!!
 
 ## -m the file path which save the log separator format str *
 
-## -s the new separator for output *
+## -s the new separator for output  default " "
 
 
 ###### 分离提取字段
 
-sh z.sh -f accesslog -c field1.conf -i "url,ua" -s "|" -m format1.conf
+sh z.sh -f accesslog -c field1.conf -i "url,ua" -m format1.conf
 
 ###### 统计工具
 
-sh y.sh -f accesslog -c apachefield.conf -m apachelogformat -s "|" -S url|pv|rt|size
+### $1 uri or url
+### $2 method
+### $3 status
+### $4 cost
+### $5 size
+
+###  -s separator char default " "
+###  -S [url|pv|rt|size]  default pv
+
+sh y.sh -f log -s " " -S url|pv|rt|size
+
+sh z.sh -f log1 -c field1.conf -m format1.conf -i "url,method,status,cost,size" | sh y.sh

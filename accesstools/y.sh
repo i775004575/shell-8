@@ -2,25 +2,15 @@
 export LC_ALL=C
 
 logfilepath=""
-conffilepath=""
-logformatstr=""
-logformatfile=""
-spstr=""
 paixu=""
+spstr=""
 
-while getopts "f:c:m:s:S:" optname 
+while getopts "f:s:S:" optname 
 do 
     case "$optname" in
     "f")
 	logfilepath=$OPTARG
         ;;
-    "c")
-	conffilepath=$OPTARG
-	;;
-    "m")
-	logformatfile=$OPTARG
-	logformatstr=`awk -F'=' '$1=="format"{print $2}' $logformatfile`
-	;;
     "s")
 	spstr=$OPTARG
 	;;
@@ -45,35 +35,7 @@ paixu=`echo $paixu | awk '
                 print result;
         }'`
 
-
-items="vhost,uri,method,status,cost,size"
-
-items=`awk -v its="$items" -v fmt="$logformatstr" -v spstr="$spstr" -F'=' '
-BEGIN{
-	split(its,arrayitems,",");
-	split(fmt,target,spstr);
-	for(i=1;i<=length(target);i++){
-		list[target[i]]=i;
-	}
-}
-{
-	map[$2]=$1;
-}
-END{
-	res="";
-	for(i=1;i<=length(arrayitems);i++){
-		res=res""list[map[arrayitems[i]]];
-		if(i<length(arrayitems)){res=res",";}
-	}
-	print res;
-}' $conffilepath`
-
-pvhost=`echo $items|awk -F"," '{print $1}'`
-puri=`echo $items| awk -F"," '{print $2}'`
-pmethod=`echo $items| awk -F"," '{print $3}'`
-pstatus=`echo $items| awk -F"," '{print $4}'`
-pcost=`echo $items| awk -F"," '{print $5}'`
-psize=`echo $items| awk -F"," '{print $6}'`
+spstr=`echo $spstr | awk '{if($1==""){print " "}}' `
 
 echo ""
 echo ""
@@ -85,14 +47,16 @@ echo ""
 echo  "===================================================================================================================================="
 echo ""
 
-awk -v pvhost="$pvhost" -v puri="$puri" -v pmethod="$pmethod" -v pstatus="$pstatus" -v pcost="$pcost" -v psize="$psize" -F"$spstr" '
+awk -F"$spstr" '
 {
 	total++;
-	uri=$pvhost$puri;
-	method=$pmethod;
-	status=$pstatus;
-	cost=$pcost;
-	size=$psize;
+	url=$1;
+	uri=substr(url,0,index(url,"?")-1);
+        if(uri==""){uri=substr(url,0,length(url)-1);}
+	method=$2;
+	status=$3;
+	cost=$4;
+	size=$5;
 	map0[uri]++;
 	key=uri"~"status""method;
 	map1[key]+=cost;
