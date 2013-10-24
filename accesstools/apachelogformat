@@ -1,1 +1,0 @@
-format=%h|%D|%t|%m|%v|%U|%q|%>s|%O|%{Referer}i|%{User-Agent}i
