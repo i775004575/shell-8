@@ -37,3 +37,14 @@ sh z.sh -f accesslog -c field1.conf -i "url,ua" -m format1.conf
 sh y.sh -f log -s " " -S url|pv|rt|size
 
 sh z.sh -f log1 -c field1.conf -m format1.conf -i "url,method,status,cost,size" | sh y.sh
+
+
+###  测试工具
+
+###显示format.conf里的列分隔符
+
+sh printsepatator.sh format1.conf 
+
+###根据列分隔符对日志进行分隔，打印格式是为了对分隔效果进行校对，帮助填写field配置文件
+
+sh testseperatorformat.sh -m format1.conf -f log1
