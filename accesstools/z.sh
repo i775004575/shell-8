@@ -50,6 +50,21 @@ END{
 	print res;
 }' $conffilepath`
 
+simplemode=`echo $logformatstr | awk '
+{
+  for(i=1;i<=length($0);i++){
+    map[substr($0,i,1)]=1;
+  }
+}END{
+	if(length(map)==1){
+		print "true";
+	}else{
+		print "false";
+	}
+}'`
+
+if [ $simplemode = "false" ];then
+
 awk -v sp="$logformatstr" -v its="$items" -v sps="$outputspstr" '
 BEGIN{
  fn=length(sp);
@@ -57,6 +72,7 @@ BEGIN{
 	list[i]=substr(sp,i,1);
  }
  split(its,rl,",");
+ rlsize=length(rl);
 }
 {
  tstr=$0;
@@ -75,9 +91,27 @@ BEGIN{
 	$i=tstr;
 	i++;
   }
-  for(i=1;i<=length(rl);i++){
+  for(i=1;i<=rlsize;i++){
 	res=res""$rl[i]""sps;
-  } 
-  print res;  
+  }
+  print res;
   res="";
 }' $logfilepath
+
+else
+
+awk -v sp="$logformatstr" -v its="$items" -v sps="$outputspstr" '
+BEGIN{
+ FS=substr(sp,1,1);
+ split(its,rl,",");
+ rlsize=length(rl);
+}
+{
+  for(i=1;i<=rlsize;i++){
+        res=res""$rl[i]""sps;
+  } 
+  print res;
+  res="";
+}' $logfilepath
+
+fi
