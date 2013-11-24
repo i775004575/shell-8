@@ -238,3 +238,28 @@ tail $lines $i
 done
 }
 
+##################################################
+##                                              ##
+##                进制转换                      ##
+##                                              ##
+##################################################
+convertnumber(){
+num=$1
+scale=$2
+case $scale in
+8)
+ echo $num  |awk '{printf "%o\n",$0}'
+;;
+10)
+  echo $num  |awk '{printf "%\n",$0}'
+;;
+16)
+  echo $num  |awk '{printf "%x\n",$0}'
+;;
+esac
+}
+
+
+dstatex(){
+dstat -tcdmnrspl --top-cpu --top-mem --top-io
+}
