@@ -174,31 +174,6 @@ dw=`getStringWithDefault "-h" $3`
 du --max-depth=$dep $path $dw
 }
 
-
-
-##################################################
-##                                              ##
-##               common path                    ##
-##                                              ##
-##################################################
-
-path () {
-action=$1
-case $action in
-accesslog)
-  path="/home/admin/cai/logs/cronolog/"
-  year=`date +%Y`
-  month=`date +%m`
-  log=$path$year"/"$month"/"
-  cd $log
-;;
-applog)
-  appname=`cat /home/admin/bin/app_name`
-  cd "/home/admin/"${appname}"/logs/"
-;;
-esac
-}
-
 ##################################################
 ##                                              ##
 ##               for do commond                 ##
@@ -259,7 +234,11 @@ case $scale in
 esac
 }
 
-
+##################################################
+##                                              ##
+##                dstat ex                      ##
+##                                              ##
+##################################################
 dstatex(){
 dstat -tcdmnrspl --top-cpu --top-mem --top-io
 }
