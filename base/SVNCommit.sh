@@ -2,7 +2,7 @@
 
 clear
 svnURL=`svn info | fgrep URL | awk -F"URL:" '{ print $2}'`
-appname=`svn info | fgrep 版本库根 | awk -F"/" '{print $NF}' `
+appname=`svn info | fgrep URL | awk -F"/" '{print $NF}' `
 svntrunk="http://svn.app.taobao.net/repos/"$appname"/trunk/"$appname
 
 echo  "AppName:" $appname

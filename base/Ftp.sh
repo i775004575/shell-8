@@ -10,8 +10,8 @@ ftpput () {
 filename=$1
 localpath=$2
 echo "upload ${localpath} to FTP"
-ftp -v -n pubftp.taobao.net  << EOF
-user pubftp look
+ftp -v -n 192.168.1.6  << EOF
+user blueocn Blueocn11
 binary
 hash
 put $localpath $filename
@@ -25,8 +25,8 @@ ftpget () {
 filename=$1
 localpath=$2
 echo "download ${localpath} from FTP"
-ftp -v -n pubftp.taobao.net  << EOF
-user pubftp look
+ftp -v -n 192.168.1.6  << EOF
+user blueocn Blueocn11
 binary
 hash
 get  $filename $localpath
