@@ -126,8 +126,9 @@ _get_comp_words_by_ref cur
 dirs=`echo $path | awk -F"/" '{for(i=1;i<NF+1;i++){s=s$i" ";}}END{print s}'`
 dirs="$dirs"
 COMPREPLY=( $( compgen -W "$dirs" -- "$cur" ) )
-complete -F _ccd ccd
 }
+
+complete -F _ccd ccd
 
 ##################################################
 ##                                              ##
