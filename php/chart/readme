@@ -1,0 +1,31 @@
+折线图
+http://142.54.174.146/test/chart/chart.php?ti=download&yti=times&xv={1031,1101,1102,1103,1104,1105,1106}&data={DT={4,4,4,0,0,4,4};RT={1,2,3,4,5,6,7}}
+ti--    标题
+yti--   y轴标题
+xv--    x轴点
+data--  数据点
+DT、RT-- 可以自己命名
+
+柱状图
+http://142.54.174.146/test/chart/columnchart.php?ti=download&yti=times&xv={1031,1101,1102,1103,1104,1105,1106}&data={DT={4,4,4,0,0,4,4};RT={1,2,3,4,5,6,7}}
+参数同上
+
+柱状图2
+http://142.54.174.146/test/chart/barchart.php?ti=download&yti=times&xv={1031,1101,1102,1103,1104,1105,1106}&data={DT={4,4,4,0,0,4,4};RT={1,2,3,4,5,6,7}}
+参数同上
+
+饼形图
+http://142.54.174.146/test/chart/piechart.php?ti=download&tip=xxx&data={a=4;b=4;c=4;d=4}
+ti--    标题
+tip--   鼠标移上去的提示文字
+data--  数据点（a,b,c,d可以自己命名）
+
+动态ajax请求填充数据 
+http://142.54.174.146/test/chart/splinechart.php?ti=123&it=5000&xn=qwe&durl=/test/chart/d.html
+
+散点图
+http://142.54.174.146/test/chart/pointchart.php?ti=DATA&xt=xxxxxxxx&yt=yyyyyyyy&data={1=2;2=3;3=4;3=7}
+
+
+map
+http://0101.pro/test/map/map.php?data={%E6%B1%9F%E8%8B%8F=462463;%E5%B1%B1%E4%B8%9C=399562;%E4%B8%8A%E6%B5%B7=390919;%E6%B5%99%E6%B1%9F=380025;%E5%8C%97%E4%BA%AC=320259;%E6%B2%B3%E5%8D%97=256874;%E7%A6%8F%E5%BB%BA=222470;%E8%BE%BD%E5%AE%81=207748;%E9%99%95%E8%A5%BF=171502;%E9%BB%91%E9%BE%99%E6%B1%9F=161955;%E5%B1%B1%E8%A5%BF=144739;%E5%A4%A9%E6%B4%A5=126642;%E5%B9%BF%E4%B8%9C=122807;%E5%90%89%E6%9E%97=116472;%E5%AE%89%E5%BE%BD=114658;%E5%86%85%E8%92%99%E5%8F%A4=102580;%E6%96%B0%E7%96%86=71040;%E7%94%98%E8%82%83=67784;%E5%AE%81%E5%A4%8F=29493;%E9%9D%92%E6%B5%B7=13711;%E6%B2%B3%E5%8C%97=9625;%E6%B1%9F%E8%A5%BF=6926;%E5%B9%BF%E8%A5%BF=3914;%E4%BA%91%E5%8D%97=3675;%E5%9B%9B%E5%B7%9D=3586;%E6%B9%96%E5%8D%97=2625;%E6%B9%96%E5%8C%97=2517;%E5%86%85%E8%92%99%E5%8F%A4=1674;%E9%87%8D%E5%BA%86=534;%E6%B5%B7%E5%8D%97=503;%E8%B4%B5%E5%B7%9E=228;%E9%A6%99%E6%B8%AF=95;%E8%A5%BF%E8%97%8F=35;%E5%8F%B0%E6%B9%BE=24;%E6%BE%B3%E9%97%A8=16;}
