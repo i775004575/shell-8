@@ -1,18 +1,10 @@
 #!/bin/sh
 
 clear
-svnURL=`svn info | fgrep URL | awk -F"URL:" '{ print $2}'`
-appname=`svn info | fgrep URL | awk -F"/" '{print $NF}' `
-svntrunk="http://svn.app.taobao.net/repos/"$appname"/trunk/"$appname
+svnURL=`svn info | fgrep URL | awk -F"URL:" '{print $2}'`
+appname=`svn info | fgrep URL | awk -F"/" '{print $NF}'`
 
 echo  "AppName:" $appname
-
-if [ $svnURL = $svntrunk ] ;then
-echo  "==============================="
-echo  ""
-echo  "WARN: It is trunk !!! Really???"
-echo  ""
-fi
 
 tmpresult="/tmp/svntempresult"
 svn st > $tmpresult
@@ -58,7 +50,7 @@ y|Y|yes|YES)
  read reason
  echo "Who Review This Commit"
  read review
- message="Reason: $reason    Reviewer: $review"
+ message="Reason: $reason	Reviewer: $review"
  svn ci -m "$message"
  svn up 
 ;;
