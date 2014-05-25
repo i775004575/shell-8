@@ -55,7 +55,8 @@ sh $TOMCATZSHPATH deploywithagent
 getstat java
 ;;
 6)
-sh $TOMCATZSHPATH shutdown
+##sh $TOMCATZSHPATH shutdown
+kill -9 `pgrep java`
 getstat java
 ;;
 7)
