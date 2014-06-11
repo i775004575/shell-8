@@ -141,6 +141,11 @@ s=$1
 date -d "${s}" +%s
 }
 
+second2date(){
+s=$1
+date --date=@${s} "+%Y-%m-%d %H:%M:%S"
+}
+
 datecompare(){
 s1=$1
 s2=$2
