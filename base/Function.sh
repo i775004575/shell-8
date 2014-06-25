@@ -108,27 +108,31 @@ fi
 
 ccd(){
 p=`pwd`
-s=`isnum $1`
-if [ $s = "true" ];then
-  pr=`echo $p | awk -v var=$1 -F"/" '{for(i=1;i<NF-var+1;i++){z=z$i""FS;}}END{print z}'`
-else
-  pr=`echo $p | awk -v var=$1 -F"/" '{for(i=1;i<NF+1;i++){z=z$i""FS;if($i==var){break;}}}END{print z}'`
-fi
-echo $pr
-cd $pr 
+coner=`echo -e $1 | awk -F"/" '{print $1}' `
+layer=`echo -e $1 | awk -F"/" 'NF>1{for(i=2;i<NF;i++){ s=s""$i"/"}}END{print s}'`
+pr=`echo $p | awk -v var=$coner -F"/" '{for(i=1;i<NF+1;i++){z=z$i""FS;if($i==var){break;}}}END{print z}'`
+cd $pr$layer
 }
 
 _ccd(){
-local path cur dirs
-path=`pwd`
-COMPREPLY=()
+local path cur dirs ever coner layer fake
 _get_comp_words_by_ref cur
-dirs=`echo $path | awk -F"/" '{for(i=1;i<NF+1;i++){s=s$i" ";}}END{print s}'`
+ever=`echo $cur | awk -F"/" 'NF>1{ print "true" }'`
+if [ -z "$ever" ];then
+  path=`pwd`
+  dirs=`echo $path | awk -F"/" '{for(i=1;i<NF+1;i++){s=s$i" ";}}END{print s}'`
+else
+  coner=`echo -e $cur | awk -F"/" '{print $1}' `
+  path=`pwd`
+  path=`echo -e $path | awk -F"/" -v var=$coner '{for(i=1;i<NF+1;i++){if($i==var){break;}if($i==""){s="/";}else{s=s""$i"/"}}}END{print s}'`
+  layer=`echo -e $cur | awk -F"/" 'NF>1{for(i=2;i<NF;i++){ s=s""$i"/"}}END{print s}'`
+  dirs=`ls -l $path$coner"/"$layer | grep ^d | awk '{a=a" "$9;}END{print a}' | awk -v v1=$coner"/"$layer '{ for(i=1;i<NF+1;i++){s=s" "v1""$i} } END{print s}' `
+fi
 dirs="$dirs"
-COMPREPLY=( $( compgen -W "$dirs" -- "$cur" ) )
+COMPREPLY=( $( compgen -W "$dirs" -S "/" -- "$cur" ) )
 }
 
-complete -F _ccd ccd
+complete -F _ccd -o nospace ccd
 
 ##################################################
 ##                                              ##
