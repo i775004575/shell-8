@@ -1,0 +1,2 @@
+sh function.sh  data.log result.log 19
+sh function2.sh 19 result.log
