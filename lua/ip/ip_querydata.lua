@@ -2,8 +2,11 @@ local cjson = require "cjson"
 local bit32 = require "bit32"
 
 local ipdb = ngx.shared.ipdb
-local indexBuffer = ipdb:get("indexBuffer")
-local offset_len = ipdb:get("offset_len")
+local dataconfig = ngx.shared.dataconfig
+local regionvsid = ngx.shared.regiondb
+local countryvsid = ngx.shared.countrydb
+local indexBuffer = dataconfig:get("indexBuffer")
+local offset_len = dataconfig:get("offset_len")
 
 function Split(str, delim, maxNb)   
     if string.find(str, delim) == nil then  
@@ -45,6 +48,12 @@ end
 
 function IpOffset(ipstr,indexBuffer,offset_len)
     local ip1,ip2,ip3,ip4 = string.match(ipstr, "(%d+).(%d+).(%d+).(%d+)")
+    if ip1 == nil or ip2 == nil or ip3 == nil or ip3 == nil or ip4 == nil then 
+        return nil
+    end
+    if tonumber(ip1)>255 or tonumber(ip1)<0 or tonumber(ip2)>255 or tonumber(ip2)<0 or tonumber(ip3)>255 or tonumber(ip3)<0 or tonumber(ip4)>255 or tonumber(ip4)<0 then
+        return nil
+    end
     local ip_uint32 = byteToUint32(ip1, ip2, ip3, ip4)
     local tmp_offset = ip1 * 4 
     local start_len = byteToUint32(string.byte(indexBuffer, tmp_offset + 4), string.byte(indexBuffer, tmp_offset + 3), string.byte(indexBuffer, tmp_offset + 2), string.byte(indexBuffer, tmp_offset + 1))
@@ -69,16 +78,33 @@ function IpOffset(ipstr,indexBuffer,offset_len)
 end
 
 local pip = ngx.var.arg_ip
+if pip == nil or pip == "myip" then 
+    pip = ngx.var.remote_addr
+end
 local gtmp = IpOffset(pip,indexBuffer,offset_len)
 if gtmp == nil then 
-  ngx.say(cjson.encode({country = "UNKNOWN COUNTRY", province = "UNKNOWN PROVINCE"}))
+  ngx.say(cjson.encode({country = "", region = ""}))
 else
   local k = ipdb:get(gtmp)
   if k == nil then 
-	ngx.say(cjson.encode({country = "UNKNOWN COUNTRY", province = "UNKNOWN PROVINCE"}))
+	ngx.say(cjson.encode({country = "", region = ""}))
   else	
 	local res = {}
 	res = Split(k,"\t")
-	ngx.say(cjson.encode({country = res[1], province = res[2] }))
+    if res[1] == "中国" then
+        local rgc = ""
+        if res[2] == nil then 
+            res[2] = ""
+        else
+            rgc = regionvsid:get(res[2])
+            if rgc == nil then 
+                rgc = ""
+            end 
+        end
+        ngx.say(cjson.encode({country = "中国" , countryCode = "CN" , region = res[2] ,  regionCode = rgc }))
+    else
+        local ctc = countryvsid:get(res[1])
+        ngx.say(cjson.encode({country = res[1] , countryCode = ctc , region = "" ,  regionCode = "" }))
+    end
   end
 end
