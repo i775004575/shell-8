@@ -5,6 +5,7 @@ local ipdb = ngx.shared.ipdb
 local dataconfig = ngx.shared.dataconfig
 local regionvsid = ngx.shared.regiondb
 local countryvsid = ngx.shared.countrydb
+local cityvsid = ngx.shared.citydb
 local indexBuffer = dataconfig:get("indexBuffer")
 local offset_len = dataconfig:get("offset_len")
 
@@ -99,9 +100,14 @@ else
             rgc = regionvsid:get(res[2])
             if rgc == nil then 
                 rgc = ""
+            else
+                rcc = cityvsid:get(res[3])
+                if rcc == nil then
+                    rcc = ""
+                end
             end 
         end
-        ngx.say(cjson.encode({country = "中国" , countryCode = "CN" , region = res[2] ,  regionCode = rgc }))
+        ngx.say(cjson.encode({country = "中国" , countryCode = "CN" , region = res[2] ,  regionCode = rgc , city = res[3] , cityCode = rcc }))
     else
         local ctc = countryvsid:get(res[1])
         ngx.say(cjson.encode({country = res[1] , countryCode = ctc , region = "" ,  regionCode = "" }))

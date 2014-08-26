@@ -42,6 +42,7 @@ local ipdb = ngx.shared.ipdb
 local dataconfig = ngx.shared.dataconfig
 local regionvsid = ngx.shared.regiondb
 local countryvsid = ngx.shared.countrydb
+local cityvsid = ngx.shared.citydb
 
 
 local indexBuffer = ''
@@ -82,4 +83,11 @@ for i in f2:lines() do
     ngx.say(sr2[1] .. "" .. sr2[2])
 end
 
+local f3 = io.open("/home/peiliping/dev/IP/cityid")
+local sr3 = {}
+for i in f3:lines() do
+    sr3 = Split(i,"\t")
+    cityvsid:set(sr3[1],sr3[2])
+    ngx.say(sr3[1] .. "" .. sr3[2])
+end
 ngx.say("ok")
