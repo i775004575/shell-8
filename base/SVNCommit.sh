@@ -42,6 +42,23 @@ awk '{if($1=="?") print $0}' $tmpresult
 fi
 
 echo  "==============================="
+if [ "$t1" != "" ] ;then
+echo  "Need add the files not in svn automatically ? (y/n)"
+read ans
+case $ans in 
+y)
+   m=`awk '{if($1=="?"){a=$2" "a}}END{print a}' $tmpresult`
+   echo  "==========Add Files============"
+   for mk in `echo $m`
+   do 
+	svn add $mk
+   done
+;;
+esac
+echo  "==============================="
+fi
+
+
 echo  "Will You Commit? (y/n)"
 read  ans
 case $ans in 
