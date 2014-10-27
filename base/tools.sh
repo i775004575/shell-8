@@ -11,7 +11,7 @@ ps -ef | fgrep $1
 if [ -z "$1" ] ;then
 clear
 echo "=============================================="
-echo "\t1  \t翻墙"
+echo "\t1  \t"
 echo "\t2  \t修改hosts文件"
 echo "\t3  \t本机IP\n"
 echo "\t4  \t启动Tomcat服务器"
@@ -33,7 +33,6 @@ fi
 
 case $ans in
 1)
-python /home/peiliping/dev/goagent/local/proxy.py
 ;;
 2)
 sudo gedit /etc/hosts
