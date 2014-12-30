@@ -39,11 +39,11 @@ ifconfig
 ;;
 4)
 sh $TOMCATZSHPATH deploy
-getstat java
+getstat tomcat
 ;;
 5)
-kill -9 `pgrep java`
-getstat java
+kill -9 `pgrep tomcat`
+getstat tomcat
 ;;
 6)
 sh $NGINXYSHPATH start
