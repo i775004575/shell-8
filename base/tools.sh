@@ -19,9 +19,6 @@ echo "\t5  \t关闭Tomcat服务器\n"
 echo "\t6  \t启动Tengine服务"
 echo "\t7  \t关闭Tengine服务"
 echo "\t8  \t重启Tengine服务\n"
-echo "\t9 \t启动mysql服务"
-echo "\t10 \t关闭mysql服务\n"
-echo "\t11 \t启动FastCGI\n"
 echo "\t99 \t寻找快捷方式\n"
 echo "\t0  \texit\n"
 echo "which One ?"
@@ -59,15 +56,6 @@ getstat nginx
 8)
 sh $NGINXYSHPATH restart
 getstat nginx 
-;;
-9)
-/etc/init.d/mysql start
-;;
-10)
-sudo /etc/init.d/mysql stop
-;;
-11)
-spawn-fcgi -a 127.0.0.1 -p 9000 -C 10 -u peiliping -f /usr/bin/php-cgi
 ;;
 99)
 nautilus /usr/share/applications/
