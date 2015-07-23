@@ -54,7 +54,7 @@
 						action="false";
 						split(actname,ppp,":");
 						ppp[2]=trim(ppp[2]);
-						if(ppp[2]!="" && substr(ppp[2],0,1)=="^"){
+						if(ppp[2]!="" && substr(ppp[2],1,1)=="^"){
 							ppp[2]=varmap[substr(ppp[2],2)];
 						}
 						resultline=resultline""f_action(trim(ppp[1]),ppp[2]);
