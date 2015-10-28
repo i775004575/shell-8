@@ -39,7 +39,10 @@ function handleOrderList(pageNum, startTime, endTime, isFirst){
 		if( ++result.index<result.totalnum/result.pageSize+1 ){
 			handleOrderList(pageNum+1,startTime,endTime,false);	
                     	}
-                    }   
+                    },
+                    error :  function( jqXHR,  textStatus, errorThrown){
+                    	handleOrderList(pageNum , startTime ,endTime ,isFirst);
+                    }
                }); 
 }
 
@@ -128,7 +131,10 @@ function handleInstance(item){
 		}else{
 			teamtag = data.data.Instances.Instance[0].Tags.Tag[0].TagValue;		
 		} 
-                    }   
+                    } ,
+                    error : function( jqXHR,  textStatus, errorThrown){
+                    	handleInstance(item);
+                    }  
                }); 
 	item['team'] = teamtag;
 }
