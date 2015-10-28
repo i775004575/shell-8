@@ -1,4 +1,4 @@
-timeout 15 ~/dev/phantomjs/bin/phantomjs v2exlist.js > result
+timeout 15 phantomjs v2exlist.js > result
 
 echo "                V2ex ..."
 

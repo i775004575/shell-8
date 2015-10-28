@@ -8,4 +8,4 @@ echo "Go To " $url " ......"
 
 awk -F"\t" -v var=$itemnum 'NR==var{print $1}' result
 
-timeout 30 ~/dev/phantomjs/bin/phantomjs v2expage.js $url
+timeout 30 phantomjs v2expage.js $url
