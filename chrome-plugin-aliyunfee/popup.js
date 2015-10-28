@@ -42,7 +42,7 @@ function collectRDS(pageNum){
                     		result['totalnum'] = data.data.TotalRecordCount;
                     	}
                     	data.data.Items.DBInstance.forEach(function(value){
-			progress(result.runner++ + "," + value.RegionId + ",RDS,"+ value.DBInstanceDescription.substring(0,value.DBInstanceDescription.indexOf("_"))+ "\n");
+			progress(result.runner++ + "," + value.RegionId + ",RDS," + value.InsId + ","+ value.DBInstanceDescription.substring(0,value.DBInstanceDescription.indexOf("_"))+ "\n");
                     	});
 		if( ++result.index<result.totalnum/result.pageSize+1 ){
 			collectRDS(pageNum+1);
@@ -67,7 +67,7 @@ function collectKV(pageNum){
                     		result['totalnum'] = data.data.TotalCount;
                     	}
                     	data.data.Instances.KVStoreInstance.forEach(function(value){
-			progress(result.runner++ + "," + value.RegionId + ",KV,"+ value.InstanceName.substring(0,value.InstanceName.indexOf("_"))+ "\n");
+			progress(result.runner++ + "," + value.RegionId + ",KV," + value.InstanceId+ ","+ value.InstanceName.substring(0,value.InstanceName.indexOf("_"))+ "\n");
                     	});
 		if( ++result.index<result.totalnum/result.pageSize+1 ){
 			collectKV(pageNum+1);
@@ -96,7 +96,7 @@ function collectECS(regionIndex , pageNum){
                     		result['totalnum'] = data.data.TotalCount;
                     	}
                     	data.data.Instances.Instance.forEach(function(value){
-			progress(result.runner++ + "," + value.RegionId + ",ECS,"+ value.Tags.Tag[0].TagValue+"\n");
+			progress(result.runner++ + "," + value.RegionId + ",ECS," + value.InstanceId+ "," + value.Tags.Tag[0].TagValue+"\n");
                     	});
 		if( ++result.index<result.totalnum/result.pageSize+1 ){
 			collectECS(regionIndex,pageNum+1);
