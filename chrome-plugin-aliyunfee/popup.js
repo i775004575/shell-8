@@ -2,7 +2,7 @@ var result = { data : [] , runner : 1 , t_runner : 1, pageSize : 10, index : 1 ,
 $(document).ready(function(){
 	$("#startpoint").val(result.runner);
 	$("#b_reset").click(function(){
-		result = { data : [] , runner : 1 , t_runner : 1, pageSize : 10, index :1 };
+		result = { data : [] , runner : 1 , t_runner : 1, pageSize : 10, index :1 ,endpoint : 1000000000 };
 		$("#startpoint").val(1);
 		$("#endpoint").val(0);
 		$("#progress").val("0/0");
@@ -15,7 +15,101 @@ $(document).ready(function(){
 		var st =	Date.parse($("#st").val()) , et = Date.parse($("#et").val());
 		handleOrderList(result.index, st , et, true);
 	});
+	$("#b_collect_ecs").click(function(){
+		result.index=1;
+		collectECS(1);
+	});
+	$("#b_collect_rds").click(function(){
+                    	result.index=1;		
+		collectRDS(1);
+	});
+	$("#b_collect_kv").click(function(){
+		result.index=1;
+		collectKV(1);
+	});
 });
+
+function collectRDS(pageNum){
+	$.ajax({   
+                    async : true ,   
+                    cache : false,   
+                    timeout : 5000,   
+                    type : "GET",   
+                    url : "https://rdsnew.console.aliyun.com/instance/describeDBInstanceList.json",   
+                    data : {pageNumber : pageNum , pageSize : result.pageSize , region : "all" }, 
+                    success : function(data){
+                    	if(pageNum === 1){
+                    		result['totalnum'] = data.data.TotalRecordCount;
+                    	}
+                    	data.data.Items.DBInstance.forEach(function(value){
+			progress(result.runner++ + "," + value.RegionId + ",RDS,"+ value.DBInstanceDescription.substring(0,value.DBInstanceDescription.indexOf("_"))+ "\n");
+                    	});
+		if( ++result.index<result.totalnum/result.pageSize+1 ){
+			collectRDS(pageNum+1);
+                    	}
+                    },
+                    error :  function( jqXHR,  textStatus, errorThrown){
+                    	collectRDS(pageNum);
+                    }
+               }); 
+}
+
+function collectKV(pageNum){
+	$.ajax({   
+                    async : true ,   
+                    cache : false,   
+                    timeout : 5000,   
+                    type : "GET",   
+                    url : "https://kvstore.console.aliyun.com/instance/describeInstances.json",   
+                    data : {pageNumber : pageNum , pageSize : result.pageSize }, 
+                    success : function(data){
+                    	if(pageNum === 1){
+                    		result['totalnum'] = data.data.TotalCount;
+                    	}
+                    	data.data.Instances.KVStoreInstance.forEach(function(value){
+			progress(result.runner++ + "," + value.RegionId + ",KV,"+ value.InstanceName.substring(0,value.InstanceName.indexOf("_"))+ "\n");
+                    	});
+		if( ++result.index<result.totalnum/result.pageSize+1 ){
+			collectKV(pageNum+1);
+                    	}
+                    },
+                    error :  function( jqXHR,  textStatus, errorThrown){
+                    	collectKV(pageNum);
+                    }
+               }); 	
+}
+
+function collectECS(regionIndex , pageNum){
+	var regionlist = [ "ap-southeast-1","cn-shenzhen","cn-qingdao","cn-beijing","cn-shanghai","cn-hongkong","cn-hangzhou","us-west-1"];
+	if(regionIndex +1 >= regionlist.length){
+		return ;
+	}
+	$.ajax({   
+                    async : true ,   
+                    cache : false,   
+                    timeout : 5000,   
+                    type : "GET",   
+                    url : "https://ecs.console.aliyun.com/instance/instance/list.json",   
+                    data : {pageNumber : pageNum , pageSize : result.pageSize , regionId : regionlist[regionIndex] }, 
+                    success : function(data){
+                    	if(pageNum === 1){
+                    		result['totalnum'] = data.data.TotalCount;
+                    	}
+                    	data.data.Instances.Instance.forEach(function(value){
+			progress(result.runner++ + "," + value.RegionId + ",ECS,"+ value.Tags.Tag[0].TagValue+"\n");
+                    	});
+		if( ++result.index<result.totalnum/result.pageSize+1 ){
+			collectECS(regionIndex,pageNum+1);
+                    	}else{
+                    		result.index=1;
+                    		collectECS(regionIndex+1,1);
+                    	}
+                    },
+                    error :  function( jqXHR,  textStatus, errorThrown){
+                    	collectECS(regionIndex,pageNum);
+                    }
+               }); 	
+}
 
 function handleOrderList(pageNum, startTime, endTime, isFirst){
 	$.ajax({   
@@ -148,9 +242,7 @@ function buildItem(value){
 }
 
 function progress(log){
-	$("#progress").val(result.t_runner + "/" + result.totalnum);
+	$("#progress").val(result.runner + "/" + result.totalnum);
 	$("#textareaContent").val($("#textareaContent").val()+log);
-	$("#textareaContent").focus();
-	$("#textareaContent").selectionEnd = $("#textareaContent").val().length;
 	$("#startpoint").val(result.runner);
 }
