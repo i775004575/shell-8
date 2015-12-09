@@ -2,33 +2,62 @@
 export LC_ALL=C
 
 ##params
-level=$1
-if [ -z "$level" ] ;then
-level=10
+
+pid=$1
+level=$2
+trytimes=$3
+onlyrunnable=$4
+
+if [ -z "$pid" ] ;then
+ echo "enter pid"
+ exit 0
 fi
-trytimes="1000"
+if [ -z "$level" ] ;then
+ level=50
+fi
+if [ -z "$trytimes" ] ;then
+ trytimes=10000
+fi
+if [ -z "$onlyrunnable" ] ;then
+ onlyrunnable="true"
+fi
 
-##prepare 4 dump
-path="/tmp/dump_log_jstack/"
-rm -rf $path
-mkdir $path
-file="d_"
-pid=`ps -ef | fgrep jboss  | fgrep java | awk '{print $2}'`
-
+##job
 
 for i in `seq $trytimes`
 do
-time=`date +%s`"_"`date +%N`
-rtop=`top -p $pid  -H -d 1 -n 1 | head -8 | tail -1`
-ppid=`echo $rtop | awk '{print $1}' | awk '{print substr($0,7)}'`
-cpu=`echo $rtop | awk '{print $9}' | awk -F"." '{print $1}'`
-istrue=`expr $cpu \> $level`
-if [ $istrue = "1"  ] ;then
-/opt/taobao/java/bin/jstack `ps -ef | fgrep jboss  | fgrep java | awk '{print $2}'`   >> $path$file$time
-echo $rtop >> $path$file$time
-echo $ppid |awk '{printf "%x\n",$0}' >>$path$file$time
-echo "Bingo Bingo"
-fi
-remain=`expr $trytimes - $i`
-echo $remain
+ time=`date +%s`"_"`date +%N`
+ restop=`top -p $pid  -H -d 1 -n 1 | head -8 | tail -1`
+ nid=`echo $restop | awk '$2 ~ /[0-9]+/{print $2}  $1 ~ /[0-9]+/{print substr($1,5)}'`
+ cpu=`echo $restop | awk '$9 ~ /[A-Z]/ {print $10} $8 ~ /[A-Z]/ {print $9}' | awk -F"." '{print $1}'`
+ occur=`expr $cpu \> $level`
+ nid16="nid=0x"`echo $nid | awk '{printf "%x",$1}'`
+ if [ $occur = "1"  ] ;then
+  jstack $pid | awk -v key=$nid16 -v onlyrunnable=$onlyrunnable '
+    {
+	if(status=="true"){
+		if($0==""){
+			print "";
+			exit;
+		}else{
+			print $0;
+			if(handlestatus=="true"){
+				handlestatus="false";
+				if(onlyrunnable=="true"&&$2!="RUNNABLE"){
+					status="";
+					next;
+				}
+			}
+			next;
+		}
+	}
+	match($0,key);
+	if(RSTART>0){
+		print $0;
+		status="true";
+		handlestatus="true";
+	}
+    }'
+ fi
+ sleep 1
 done
