@@ -118,7 +118,7 @@ function handleOrderList(pageNum, startTime, endTime, isFirst){
                     timeout : 5000,   
                     type : "GET",   
                     url : "https://expense.console.aliyun.com/order/getOrderList.json",   
-                    data : {pageNum : pageNum , pageSize : result.pageSize , startDate : startTime , endDate : endTime }, 
+                    data : {pageNum : pageNum , pageSize : result.pageSize , startDate : startTime , endDate : endTime , orderStatus : 'PAID' }, 
                     success : function(data){
                     	if(isFirst){
                     		result['totalnum'] = data.pageInfo.total;
@@ -130,7 +130,7 @@ function handleOrderList(pageNum, startTime, endTime, isFirst){
 			handleOrderDetail(value,0);
 			result.runner++;
                     	});
-		if( ++result.index<result.totalnum/result.pageSize+1 ){
+		if(++result.index<result.totalnum/result.pageSize+1 ){
 			handleOrderList(pageNum+1,startTime,endTime,false);	
                     	}
                     },
@@ -151,54 +151,40 @@ function handleOrderDetail(value , jump){
                     success:function(data){
                     	var instanceId , type, region,team;
                     	var item = buildItem(value);
-                    	if(data.data.orderStatus === "PAID"){
-                    		if( typeof data.data.orderLineList[0] === 'undefined' ){
-				instanceId = undefined ;
-				type = "unknown";
-				region=undefined;
-			}else{
-				item['price'] = data.data.orderLineList[0].unitAmount;
-				if(typeof data.data.orderLineList[0].instanceId === "undefined"){
-					if(data.data.orderLineList[0].productPurchases.length > jump + 1){
-						handleOrderDetail( value , jump + 1 );
-					}
-					instanceId = data.data.orderLineList[0].productPurchases[jump].instanceId;
-				}else{
-					instanceId = data.data.orderLineList[0].instanceId;
-				}
-				type = data.data.orderLineList[0].commodityCode;
-				if (typeof data.data.orderLineList[0].instanceComponents === "undefined"){
-					region = undefined;
-				}else{
-					data.data.orderLineList[0].instanceComponents.forEach(function(vd){
-						if(vd.componentName ==="可用区"){
-							region = vd.properties[0].value;
-							region = region.substring(0,region.lastIndexOf("-"));
-						}
-					});
-				}
-				if(type === "rds" && typeof data.data.orderLineList[0].instanceIds[jump] !== "undefined"){
-					team=data.data.orderLineList[0].instanceIds[jump].substring(0,data.data.orderLineList[0].instanceIds[jump].indexOf('_'));
-				}
-			}
+                    	if( typeof data.data.orderLineList[0] === 'undefined' ){
+			instanceId = undefined ;
+			type = "unknown";
+			region=undefined;
 		}else{
-			instanceId = undefined;
-			type = data.data.orderStatus;
+			item['price'] = data.data.orderLineList[0].unitAmount;
+			if(typeof data.data.orderLineList[0].instanceId === "undefined"){
+				if(data.data.orderLineList[0].productPurchases.length > jump + 1){
+					handleOrderDetail( value , jump + 1 );
+				}
+				instanceId = data.data.orderLineList[0].productPurchases[jump].instanceId;
+			}else{
+				instanceId = data.data.orderLineList[0].instanceId;
+			}
+			type = data.data.orderLineList[0].commodityCode;
+			if (typeof data.data.orderLineList[0].instanceComponents === "undefined"){
+				region = undefined;
+			}else{
+				data.data.orderLineList[0].instanceComponents.forEach(function(vd){
+					if(vd.componentName ==="可用区"){
+						region = vd.properties[0].value;
+						region = region.substring(0,region.lastIndexOf("-"));
+					}
+				});
+			}
+			if(type === "rds" && typeof data.data.orderLineList[0].instanceIds[jump] !== "undefined"){
+				team=data.data.orderLineList[0].instanceIds[jump].substring(0,data.data.orderLineList[0].instanceIds[jump].indexOf('_'));
+			}
 		}
 		item['instanceId'] = instanceId;
 		item['type'] = type;
 		item['region'] = region;
-		if(type === "rds"){
-			item['teamtag'] = team;
-		}else{
-			handleInstance(item);	
-		}
-		result['data'].push(item);
-		var t_log = [];
-		for(t_item_log in item){ 
-			t_log.push(item[t_item_log]);
-		}
-		progress(t_log.join(',')+"\n");
+		handleInstance(item,team);
+		serialize(item);
                     },
                     error : function( jqXHR,  textStatus, errorThrown){
                     	handleOrderDetail(value,jump);
@@ -206,31 +192,63 @@ function handleOrderDetail(value , jump){
                }); 
 }
 
-function handleInstance(item){
+function handleInstance(item,team){
+	if(typeof team !== 'undefined'){
+		item['team'] = team;
+		return ;
+	}
 	if(typeof item.instanceId === 'undefined' || typeof item.region === "undefined"){
 		item['team'] = "Other-" + item.type;
 		return ;
-	}	
-	var teamtag ;
-	$.ajax({   
-                    async:false,   
-                    cache:false,   
-                    timeout:5000,   
-                    type:"GET",   
-                    url:"https://ecs.console.aliyun.com/instance/instance/list.json",   
-                    data:{instanceIds : item.instanceId , regionId : item.region }, 
-                    success:function(data){   
-		if( typeof data.data.Instances.Instance[0] === 'undefined' ){
-			teamtag = "Other-" + item.type;
-		}else{
-			teamtag = data.data.Instances.Instance[0].Tags.Tag[0].TagValue;		
-		} 
-                    } ,
-                    error : function( jqXHR,  textStatus, errorThrown){
-                    	handleInstance(item);
-                    }  
-               }); 
-	item['team'] = teamtag;
+	}
+	if(item['type'] === 'prepaid_kvstore'){
+		$.ajax({   
+                    		async:false,   
+                    		cache:false,   
+                    		timeout:5000,   
+                    		type:"GET",   
+                    		url:"https://kvstore.console.aliyun.com/instance/describeInstances.json",   
+                    		data:{instanceIds : item.instanceId}, 
+                    		success:function(data){
+				if( typeof data.data.Instances.KVStoreInstance[0] === 'undefined' ){
+					team = "Other-" + item.type;
+				}else{
+					team = data.data.Instances.KVStoreInstance[0].InstanceName.substring(0,data.data.Instances.KVStoreInstance[0].InstanceName.indexOf('_'));
+				} 
+                    		} ,
+                    		error : function( jqXHR,  textStatus, errorThrown){
+                    			handleInstance(item,team);
+                    		}  
+               	}); 
+	}else{
+		$.ajax({   
+                    		async:false,   
+                    		cache:false,   
+                    		timeout:5000,   
+                    		type:"GET",   
+                    		url:"https://ecs.console.aliyun.com/instance/instance/list.json",   
+                    		data:{instanceIds : item.instanceId , regionId : item.region }, 
+                    		success:function(data){   
+				if( typeof data.data.Instances.Instance[0] === 'undefined' ){
+					team = "Other-" + item.type;
+				}else{
+					team = data.data.Instances.Instance[0].Tags.Tag[0].TagValue;		
+				} 
+                    		} ,
+                    		error : function( jqXHR,  textStatus, errorThrown){
+                    			handleInstance(item,team);
+                    		}  
+               	}); 
+	}
+	item['team'] = team;
+}
+
+function serialize(item){
+	var t_log = [];
+	for(t_item_log in item){ 
+		t_log.push(item[t_item_log]);
+	}
+	progress(t_log.join(',')+"\n");
 }
 
 function buildItem(value){
