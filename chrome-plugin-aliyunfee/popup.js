@@ -61,7 +61,7 @@ function handleOrderDetail(value, purchase_jump){
 		data.data.orderLineList.forEach(function(orderLine){
 			if(typeof orderLine.productPurchases !== 'undefined'){
 				orderLine.productPurchases.forEach(function(purchase){
-					var item = buildItem(value, purchase.instanceId, orderLine.tradeAmount, orderLine.commodityCode);
+					var item = buildItem(value, purchase.instanceId, orderLine.tradeAmount/orderLine.quantity, orderLine.commodityCode);
 					handleRegion(item,orderLine.instanceComponents);
 					handleTeam(item);
 					serialize(item);
@@ -88,6 +88,9 @@ function handleRegion(item,instanceComponents){
 			}
 		});
 	}
+	if(typeof item.region === 'undefined'){
+		item['region'] = "unknown";
+	}
 }
 
 function handleTeam(item){
@@ -108,6 +111,9 @@ function handleTeam(item){
 		item['team']= result.kvstore[item.instanceId];
 	}else{
 		item['team']= result.ecs[item.instanceId];
+	}
+	if(typeof item.team === 'undefined'){
+		item['team'] = "Other-" + item.type;
 	}
 }
 
