@@ -1,4 +1,4 @@
-var result = { data : [] , runner : 1 , t_runner : 1, pageSize : 10, index : 1 ,endpoint : 1000000000 };
+var result = { data : [] , runner : 1 , t_runner : 1, pageSize : 10, index : 1 ,endpoint : 1000000000 , rds : {} , ecs : {} , kvstore : {} };
 $(document).ready(function(){
 	$("#startpoint").val(result.runner);
 	$("#b_reset").click(function(){
@@ -9,107 +9,16 @@ $(document).ready(function(){
 		$("#textareaContent").val("");
 	});
 	$("#b_run").click(function(){
-		result.t_runner = (result.index-1) * result.pageSize +1 ;
+		collectRDS(1);
+		collectKV(1);
+		collectECS(0,1)
+		result.t_runner = (result.index-1) * result.pageSize +1;
 		result.runner = $("#startpoint").val();
 		result.endpoint = $("#endpoint").val();
 		var st =	Date.parse($("#st").val()) , et = Date.parse($("#et").val());
 		handleOrderList(result.index, st , et, true);
 	});
-	$("#b_collect_ecs").click(function(){
-		result.index=1;
-		collectECS(1);
-	});
-	$("#b_collect_rds").click(function(){
-                    	result.index=1;		
-		collectRDS(1);
-	});
-	$("#b_collect_kv").click(function(){
-		result.index=1;
-		collectKV(1);
-	});
 });
-
-function collectRDS(pageNum){
-	$.ajax({   
-                    async : true ,   
-                    cache : false,   
-                    timeout : 5000,   
-                    type : "GET",   
-                    url : "https://rdsnew.console.aliyun.com/instance/describeDBInstanceList.json",   
-                    data : {pageNumber : pageNum , pageSize : result.pageSize , region : "all" }, 
-                    success : function(data){
-                    	if(pageNum === 1){
-                    		result['totalnum'] = data.data.TotalRecordCount;
-                    	}
-                    	data.data.Items.DBInstance.forEach(function(value){
-			progress(result.runner++ + "," + value.RegionId + ",RDS," + value.InsId + ","+ value.DBInstanceDescription.substring(0,value.DBInstanceDescription.indexOf("_"))+ "\n");
-                    	});
-		if( ++result.index<result.totalnum/result.pageSize+1 ){
-			collectRDS(pageNum+1);
-                    	}
-                    },
-                    error :  function( jqXHR,  textStatus, errorThrown){
-                    	collectRDS(pageNum);
-                    }
-               }); 
-}
-
-function collectKV(pageNum){
-	$.ajax({   
-                    async : true ,   
-                    cache : false,   
-                    timeout : 5000,   
-                    type : "GET",   
-                    url : "https://kvstore.console.aliyun.com/instance/describeInstances.json",   
-                    data : {pageNumber : pageNum , pageSize : result.pageSize }, 
-                    success : function(data){
-                    	if(pageNum === 1){
-                    		result['totalnum'] = data.data.TotalCount;
-                    	}
-                    	data.data.Instances.KVStoreInstance.forEach(function(value){
-			progress(result.runner++ + "," + value.RegionId + ",KV," + value.InstanceId+ ","+ value.InstanceName.substring(0,value.InstanceName.indexOf("_"))+ "\n");
-                    	});
-		if( ++result.index<result.totalnum/result.pageSize+1 ){
-			collectKV(pageNum+1);
-                    	}
-                    },
-                    error :  function( jqXHR,  textStatus, errorThrown){
-                    	collectKV(pageNum);
-                    }
-               }); 	
-}
-
-function collectECS(regionIndex , pageNum){
-	var regionlist = [ "ap-southeast-1","cn-shenzhen","cn-qingdao","cn-beijing","cn-shanghai","cn-hongkong","cn-hangzhou","us-west-1"];
-	if(regionIndex +1 >= regionlist.length){
-		return ;
-	}
-	$.ajax({   
-                    async : true ,   
-                    cache : false,   
-                    timeout : 5000,   
-                    type : "GET",   
-                    url : "https://ecs.console.aliyun.com/instance/instance/list.json",   
-                    data : {pageNumber : pageNum , pageSize : result.pageSize , regionId : regionlist[regionIndex] }, 
-                    success : function(data){
-                    	if(pageNum === 1){
-                    		result['totalnum'] = data.data.TotalCount;
-                    	}
-                    	data.data.Instances.Instance.forEach(function(value){
-			progress(result.runner++ + "," + value.RegionId + ",ECS," + value.InstanceId+ "," + value.Tags.Tag[0].TagValue+"\n");
-                    	});
-		if( ++result.index<result.totalnum/result.pageSize+1 ){
-			collectECS(regionIndex,pageNum+1);
-                    	}else{
-                    		result.index=1;
-                    		collectECS(regionIndex+1,1);
-                    	}
-                    },
-                    error :  function( jqXHR,  textStatus, errorThrown){
-                    	collectECS(regionIndex,pageNum);
-                    }
-               }); 	
-}
 
 function handleOrderList(pageNum, startTime, endTime, isFirst){
 	$.ajax({   
@@ -127,7 +36,7 @@ function handleOrderList(pageNum, startTime, endTime, isFirst){
 			if(result.runner > result.t_runner++ || result.t_runner>=result.endpoint ){
 				return;
 			}
-			handleOrderDetail(value,0);
+			handleOrderDetail(value, 0);
 			result.runner++;
                     	});
 		if(++result.index<result.totalnum/result.pageSize+1 ){
@@ -140,7 +49,7 @@ function handleOrderList(pageNum, startTime, endTime, isFirst){
                }); 
 }
 
-function handleOrderDetail(value , jump){
+function handleOrderDetail(value, purchase_jump){
 	$.ajax({   
                     async:false,   
                     cache:false,   
@@ -149,98 +58,68 @@ function handleOrderDetail(value , jump){
                     url:"https://expense.console.aliyun.com/consumption/getOrderDetail.json",   
                     data:{orderId : value.orderId }, 
                     success:function(data){
-                    	var instanceId , type, region,team;
-                    	var item = buildItem(value);
-                    	if( typeof data.data.orderLineList[0] === 'undefined' ){
-			instanceId = undefined ;
-			type = "unknown";
-			region=undefined;
-		}else{
-			item['price'] = data.data.orderLineList[0].unitAmount;
-			if(typeof data.data.orderLineList[0].instanceId === "undefined"){
-				if(data.data.orderLineList[0].productPurchases.length > jump + 1){
-					handleOrderDetail( value , jump + 1 );
-				}
-				instanceId = data.data.orderLineList[0].productPurchases[jump].instanceId;
-			}else{
-				instanceId = data.data.orderLineList[0].instanceId;
-			}
-			type = data.data.orderLineList[0].commodityCode;
-			if (typeof data.data.orderLineList[0].instanceComponents === "undefined"){
-				region = undefined;
-			}else{
-				data.data.orderLineList[0].instanceComponents.forEach(function(vd){
-					if(vd.componentName ==="可用区"){
-						region = vd.properties[0].value;
-						region = region.substring(0,region.lastIndexOf("-"));
-					}
+		data.data.orderLineList.forEach(function(orderLine){
+			if(typeof orderLine.productPurchases !== 'undefined'){
+				orderLine.productPurchases.forEach(function(purchase){
+					var item = buildItem(value, purchase.instanceId, orderLine.tradeAmount, orderLine.commodityCode);
+					handleRegion(item,orderLine.instanceComponents);
+					handleTeam(item);
+					serialize(item);
 				});
+			}else{
+				var item = buildItem(value, orderLine.instanceId, orderLine.originalAmount, orderLine.commodityCode);
+				handleRegion(item,orderLine.instanceComponents);
+				handleTeam(item);
+				serialize(item);
 			}
-			if(type === "rds" && typeof data.data.orderLineList[0].instanceIds[jump] !== "undefined"){
-				team=data.data.orderLineList[0].instanceIds[jump].substring(0,data.data.orderLineList[0].instanceIds[jump].indexOf('_'));
-			}
-		}
-		item['instanceId'] = instanceId;
-		item['type'] = type;
-		item['region'] = region;
-		handleInstance(item,team);
-		serialize(item);
+		});
                     },
                     error : function( jqXHR,  textStatus, errorThrown){
-                    	handleOrderDetail(value,jump);
+                    	handleOrderDetail(value, purchase_jump);
                     }
                }); 
 }
 
-function handleInstance(item,team){
-	if(typeof team !== 'undefined'){
-		item['team'] = team;
+function handleRegion(item,instanceComponents){
+	if(typeof instanceComponents !== 'undefined'){
+		instanceComponents.forEach(function(temp){
+			if(temp.componentName === "可用区"){
+				item['region'] = temp.properties[0].value.substring(0,temp.properties[0].value.lastIndexOf("-"));
+			}
+		});
+	}
+}
+
+function handleTeam(item){
+	if(typeof item.team !== 'undefined'){
 		return ;
 	}
-	if(typeof item.instanceId === 'undefined' || typeof item.region === "undefined"){
+	if(typeof item.type === 'undefined' ){
+		item['team'] = "Other-unknown";
+		return ;
+	}
+	if(typeof item.instanceId === 'undefined' || typeof item.region === 'undefined' ){
 		item['team'] = "Other-" + item.type;
 		return ;
 	}
-	if(item['type'] === 'prepaid_kvstore'){
-		$.ajax({   
-                    		async:false,   
-                    		cache:false,   
-                    		timeout:5000,   
-                    		type:"GET",   
-                    		url:"https://kvstore.console.aliyun.com/instance/describeInstances.json",   
-                    		data:{instanceIds : item.instanceId}, 
-                    		success:function(data){
-				if( typeof data.data.Instances.KVStoreInstance[0] === 'undefined' ){
-					team = "Other-" + item.type;
-				}else{
-					team = data.data.Instances.KVStoreInstance[0].InstanceName.substring(0,data.data.Instances.KVStoreInstance[0].InstanceName.indexOf('_'));
-				} 
-                    		} ,
-                    		error : function( jqXHR,  textStatus, errorThrown){
-                    			handleInstance(item,team);
-                    		}  
-               	}); 
+	if(item.type === 'rds'){
+		item['team'] = result.rds[item.instanceId];
+	}else if(item.type === 'prepaid_kvstore'){
+		item['team']= result.kvstore[item.instanceId];
 	}else{
-		$.ajax({   
-                    		async:false,   
-                    		cache:false,   
-                    		timeout:5000,   
-                    		type:"GET",   
-                    		url:"https://ecs.console.aliyun.com/instance/instance/list.json",   
-                    		data:{instanceIds : item.instanceId , regionId : item.region }, 
-                    		success:function(data){   
-				if( typeof data.data.Instances.Instance[0] === 'undefined' ){
-					team = "Other-" + item.type;
-				}else{
-					team = data.data.Instances.Instance[0].Tags.Tag[0].TagValue;		
-				} 
-                    		} ,
-                    		error : function( jqXHR,  textStatus, errorThrown){
-                    			handleInstance(item,team);
-                    		}  
-               	}); 
+		item['team']= result.ecs[item.instanceId];
 	}
-	item['team'] = team;
+}
+
+function buildItem(value,instanceId,price,type){
+	var t_item = {} ;
+	t_item['index'] = result.runner;
+	t_item['orderId'] = value.orderId;
+	t_item['orderType'] = value.orderType;
+	t_item['price'] =price;
+	t_item['instanceId'] = instanceId;
+	t_item['type'] = type;
+	return t_item;
 }
 
 function serialize(item){
@@ -251,16 +130,86 @@ function serialize(item){
 	progress(t_log.join(',')+"\n");
 }
 
-function buildItem(value){
-	var t_item = {} ;
-	t_item['index'] = result.runner;
-	t_item['orderId'] = value.orderId;
-	t_item['orderType'] = value.orderType;
-	return t_item;
-}
-
 function progress(log){
 	$("#progress").val(result.runner + "/" + result.totalnum);
 	$("#textareaContent").val($("#textareaContent").val()+log);
 	$("#startpoint").val(result.runner);
+}
+
+function collectKV(pageNum){
+	var totalnum ;
+	$.ajax({   
+                    async : false ,   
+                    cache : false,   
+                    timeout : 5000,   
+                    type : "GET",   
+                    url : "https://kvstore.console.aliyun.com/instance/describeInstances.json",   
+                    data : {pageNumber : pageNum , pageSize : result.pageSize }, 
+                    success : function(data){
+                    	totalnum = data.data.TotalCount;
+                    	data.data.Instances.KVStoreInstance.forEach(function(value){
+                    		result.kvstore[value.InstanceId] = value.InstanceName.substring(0,value.InstanceName.indexOf("_")) ;
+                    	});
+		if( pageNum < Math.ceil(totalnum/result.pageSize) ){
+			collectKV(pageNum+1);
+                    	}
+                    },
+                    error :  function( jqXHR,  textStatus, errorThrown){
+                    	collectKV(pageNum);
+                    }
+               }); 	
+}
+
+function collectECS(regionIndex , pageNum){
+	var regionlist = [ "ap-southeast-1","cn-shenzhen","cn-qingdao","cn-beijing","cn-shanghai","cn-hongkong","cn-hangzhou","us-west-1"];
+	if(regionIndex +1 >= regionlist.length){
+		return ;
+	}
+	var totalnum ;
+	$.ajax({   
+                    async : false ,   
+                    cache : false,   
+                    timeout : 5000,   
+                    type : "GET",   
+                    url : "https://ecs.console.aliyun.com/instance/instance/list.json",   
+                    data : {pageNumber : pageNum , pageSize : result.pageSize * 10 , regionId : regionlist[regionIndex] }, 
+                    success : function(data){
+                    	totalnum = data.data.TotalCount;
+                    	data.data.Instances.Instance.forEach(function(value){
+                    		result.ecs[value.InstanceId] = value.Tags.Tag[0].TagValue ;
+                    	});
+		if( pageNum < Math.ceil(totalnum/(result.pageSize * 10) )){
+			collectECS(regionIndex,pageNum+1);
+                    	}else{
+                    		collectECS(regionIndex+1,1);
+                    	}
+                    },
+                    error :  function( jqXHR,  textStatus, errorThrown){
+                    	collectECS(regionIndex,pageNum);
+                    }
+               }); 	
+}
+
+function collectRDS(pageNum){
+	var totalnum ;
+	$.ajax({   
+                    async : false ,   
+                    cache : false,   
+                    timeout : 5000,   
+                    type : "GET",   
+                    url : "https://rdsnew.console.aliyun.com/instance/describeDBInstanceList.json",   
+                    data : {pageNumber : pageNum , pageSize : result.pageSize , region : "all" }, 
+                    success : function(data){
+                    	totalnum = data.data.TotalRecordCount;
+                    	data.data.Items.DBInstance.forEach(function(value){
+                    		result.rds[value.InsId] = value.DBInstanceDescription.substring(0,value.DBInstanceDescription.indexOf("_"));
+                    	});
+		if( pageNum < Math.ceil(totalnum/result.pageSize) ){
+			collectRDS(pageNum + 1);
+                    	}
+                    },
+                    error :  function( jqXHR,  textStatus, errorThrown){
+                    	collectRDS(pageNum);
+                    }
+               }); 
 }
