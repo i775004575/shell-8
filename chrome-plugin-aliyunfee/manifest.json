@@ -4,7 +4,8 @@
   "description": "AFC",
   "version": "1.0",
   "background": {
-    "scripts": ["popup.js","jquery.js"],
+    // "scripts": ["popup.js","jquery.js"],
+    "page": "bg.html",
     "persistent": true
   },
   "icons": {
@@ -13,10 +14,10 @@
   "permissions": [
     "https://*.aliyun.com/"
   ],
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  // "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "browser_action": {
     "default_title": "Aliyun Fee Compute",
-    "default_icon": "favicon.ico",
-    "default_popup": "popup.html"
+    // "default_popup": "popup.html",
+    "default_icon": "favicon.ico"
   }
 }

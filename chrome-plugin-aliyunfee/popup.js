@@ -31,6 +31,11 @@ $(document).ready(function(){
 	});
 });
 
+function pushData2Result(){
+	var zoo = result.data.join('');
+	$("#textareaContent").val($("#textareaContent").val() + zoo);
+}
+
 function handleOrderList4AfterPay(pageNum, startTime, endTime){
 	$.ajax({   
                     async : true ,   
@@ -50,6 +55,8 @@ function handleOrderList4AfterPay(pageNum, startTime, endTime){
                     	});
 		if(result.index++<Math.ceil(result.totalnum/result.pageSize) ){
 			handleOrderList4AfterPay(pageNum+1,startTime,endTime);	
+                    	}else{
+                    		pushData2Result();
                     	}
                     },
                     error :  function( jqXHR,  textStatus, errorThrown){
@@ -79,6 +86,8 @@ function handleOrderList(pageNum, startTime, endTime, isFirst){
                     	});
 		if(++result.index<result.totalnum/result.pageSize+1 ){
 			handleOrderList(pageNum+1,startTime,endTime,false);	
+                    	}else{
+                    		pushData2Result();
                     	}
                     },
                     error :  function( jqXHR,  textStatus, errorThrown){
@@ -172,7 +181,7 @@ function handleTeam(item){
 	}
 	if(item.type === 'rds' || item.type === 'rords'){
 		item['team'] = result.rds[item.instanceId];
-	}else if(item.type === 'prepaid_kvstore'){
+	}else if(item.type === 'prepaid_kvstore' || item.type === 'kvstore'){
 		item['team']= result.kvstore[item.instanceId];
 	}else if(item.type === 'slb'){
 		item['team']= result.slb[item.instanceId];
@@ -205,8 +214,8 @@ function serialize(item){
 
 function progress(log){
 	$("#progress").val(result.runner + "/" + result.totalnum);
-	$("#textareaContent").val($("#textareaContent").val()+log);
 	$("#startpoint").val(result.runner);
+	result.data.push(log); 
 }
 
 function collectKV(pageNum){
