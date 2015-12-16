@@ -1,4 +1,4 @@
-var result = { data : [] , runner : 1 , t_runner : 1, pageSize : 10, index : 1 ,endpoint : 1000000000 , rds : {} , ecs : {} , kvstore : {} };
+var result = { data : [] , runner : 1 , t_runner : 1, pageSize : 20, index : 1 ,endpoint : 1000000000 , rds : {} , ecs : {} , kvstore : {} , slb: {} };
 $(document).ready(function(){
 	$("#startpoint").val(result.runner);
 	$("#b_reset").click(function(){
@@ -8,17 +8,55 @@ $(document).ready(function(){
 		$("#progress").val("0/0");
 		$("#textareaContent").val("");
 	});
-	$("#b_run").click(function(){
+	$("#b_run_pre").click(function(){
 		collectRDS(1);
 		collectKV(1);
-		collectECS(0,1)
+		collectECS(0,1);
 		result.t_runner = (result.index-1) * result.pageSize +1;
 		result.runner = $("#startpoint").val();
 		result.endpoint = $("#endpoint").val();
-		var st =	Date.parse($("#st").val()) , et = Date.parse($("#et").val());
+		var st =	Date.parse($("#st").val())-28800000 , et = Date.parse($("#et").val())-28800000;
 		handleOrderList(result.index, st , et, true);
 	});
+	$("#b_run_after").click(function(){
+		collectRDS(1);
+		collectKV(1);
+		collectECS(0,1);
+		collectSLB();
+		result.t_runner = (result.index-1) * result.pageSize +1;
+		result.runner = $("#startpoint").val();
+		result.endpoint = $("#endpoint").val();
+		var st =	Date.parse($("#st").val())-28800000 , et = Date.parse($("#et").val())-28800000;
+		handleOrderList4AfterPay(result.index, st , et);
+	});
 });
+
+function handleOrderList4AfterPay(pageNum, startTime, endTime){
+	$.ajax({   
+                    async : true ,   
+                    cache : false,   
+                    timeout : 5000,   
+                    type : "GET",   
+                    url : "https://expense.console.aliyun.com/consumption/getAfterPayBillList.json",   
+                    data : {pageNum : pageNum , pageSize : result.pageSize , startTime : startTime , endTime : endTime , needZeroBill : false , payStatus : "PAY_FINISH" }, 
+                    success : function(data){
+                    	result['totalnum'] = data.pageInfo.total;
+                    	data.data.forEach(function(value){
+			if(result.runner > result.t_runner++ || result.t_runner>=result.endpoint ){
+				return;
+			}
+			handleOrderDetail4AfterPay(value,1);
+			result.runner++;
+                    	});
+		if(result.index++<Math.ceil(result.totalnum/result.pageSize) ){
+			handleOrderList4AfterPay(pageNum+1,startTime,endTime);	
+                    	}
+                    },
+                    error :  function( jqXHR,  textStatus, errorThrown){
+                    	handleOrderList4AfterPay(pageNum , startTime ,endTime);
+                    }
+               }); 
+}
 
 function handleOrderList(pageNum, startTime, endTime, isFirst){
 	$.ajax({   
@@ -36,7 +74,7 @@ function handleOrderList(pageNum, startTime, endTime, isFirst){
 			if(result.runner > result.t_runner++ || result.t_runner>=result.endpoint ){
 				return;
 			}
-			handleOrderDetail(value, 0);
+			handleOrderDetail(value);
 			result.runner++;
                     	});
 		if(++result.index<result.totalnum/result.pageSize+1 ){
@@ -49,7 +87,34 @@ function handleOrderList(pageNum, startTime, endTime, isFirst){
                }); 
 }
 
-function handleOrderDetail(value, purchase_jump){
+function handleOrderDetail4AfterPay(value,pageNum){
+	$.ajax({   
+                    async:false,   
+                    cache:false,   
+                    timeout:5000,   
+                    type:"GET",   
+                    url:"https://expense.console.aliyun.com/consumption/listDetailInstanceByBillRegion.json",   
+                    data:{billId : value.billId ,pageNum : pageNum , pageSize : result.pageSize * 3 }, 
+                    success:function(data){
+		data.data.forEach(function(bill){
+			if(parseFloat(bill.baseConfigMap.requirePayAmount)  !== 0){
+				var item = buildItem(value.billId, "afterpay", bill.baseConfigMap.instanceId, bill.baseConfigMap.requirePayAmount, bill.baseConfigMap.productCode);
+				handleRegion(item);
+				handleTeam(item);
+				serialize(item);
+			}
+		});
+		if( pageNum < Math.ceil(data.pageInfo.total/(result.pageSize*3))){
+			handleOrderDetail4AfterPay(value,pageNum+1);
+                    	}
+                    },
+                    error : function( jqXHR,  textStatus, errorThrown){
+                    	handleOrderDetail4AfterPay(value,pageNum);
+                    }
+               }); 
+}
+
+function handleOrderDetail(value){
 	$.ajax({   
                     async:false,   
                     cache:false,   
@@ -61,13 +126,13 @@ function handleOrderDetail(value, purchase_jump){
 		data.data.orderLineList.forEach(function(orderLine){
 			if(typeof orderLine.productPurchases !== 'undefined'){
 				orderLine.productPurchases.forEach(function(purchase){
-					var item = buildItem(value, purchase.instanceId, orderLine.tradeAmount/orderLine.quantity, orderLine.commodityCode);
+					var item = buildItem(value.orderId, value.orderType, purchase.instanceId, orderLine.tradeAmount/orderLine.quantity, orderLine.commodityCode);
 					handleRegion(item,orderLine.instanceComponents);
 					handleTeam(item);
 					serialize(item);
 				});
 			}else{
-				var item = buildItem(value, orderLine.instanceId, orderLine.originalAmount, orderLine.commodityCode);
+				var item = buildItem(value.orderId, value.orderType, orderLine.instanceId, orderLine.originalAmount, orderLine.commodityCode);
 				handleRegion(item,orderLine.instanceComponents);
 				handleTeam(item);
 				serialize(item);
@@ -75,7 +140,7 @@ function handleOrderDetail(value, purchase_jump){
 		});
                     },
                     error : function( jqXHR,  textStatus, errorThrown){
-                    	handleOrderDetail(value, purchase_jump);
+                    	handleOrderDetail(value);
                     }
                }); 
 }
@@ -83,7 +148,7 @@ function handleOrderDetail(value, purchase_jump){
 function handleRegion(item,instanceComponents){
 	if(typeof instanceComponents !== 'undefined'){
 		instanceComponents.forEach(function(temp){
-			if(temp.componentName === "可用区"){
+			if(temp.componentName === '可用区'){
 				item['region'] = temp.properties[0].value.substring(0,temp.properties[0].value.lastIndexOf("-"));
 			}
 		});
@@ -105,10 +170,12 @@ function handleTeam(item){
 		item['team'] = "Other-" + item.type;
 		return ;
 	}
-	if(item.type === 'rds'){
+	if(item.type === 'rds' || item.type === 'rords'){
 		item['team'] = result.rds[item.instanceId];
 	}else if(item.type === 'prepaid_kvstore'){
 		item['team']= result.kvstore[item.instanceId];
+	}else if(item.type === 'slb'){
+		item['team']= result.slb[item.instanceId];
 	}else{
 		item['team']= result.ecs[item.instanceId];
 	}
@@ -117,11 +184,11 @@ function handleTeam(item){
 	}
 }
 
-function buildItem(value,instanceId,price,type){
+function buildItem(orderId,orderType,instanceId,price,type){
 	var t_item = {} ;
 	t_item['index'] = result.runner;
-	t_item['orderId'] = value.orderId;
-	t_item['orderType'] = value.orderType;
+	t_item['orderId'] = orderId;
+	t_item['orderType'] = orderType;
 	t_item['price'] =price;
 	t_item['instanceId'] = instanceId;
 	t_item['type'] = type;
@@ -178,13 +245,13 @@ function collectECS(regionIndex , pageNum){
                     timeout : 5000,   
                     type : "GET",   
                     url : "https://ecs.console.aliyun.com/instance/instance/list.json",   
-                    data : {pageNumber : pageNum , pageSize : result.pageSize * 10 , regionId : regionlist[regionIndex] }, 
+                    data : {pageNumber : pageNum , pageSize : result.pageSize * 2 , regionId : regionlist[regionIndex] }, 
                     success : function(data){
                     	totalnum = data.data.TotalCount;
                     	data.data.Instances.Instance.forEach(function(value){
                     		result.ecs[value.InstanceId] = value.Tags.Tag[0].TagValue ;
                     	});
-		if( pageNum < Math.ceil(totalnum/(result.pageSize * 10) )){
+		if( pageNum < Math.ceil(totalnum/(result.pageSize * 2) )){
 			collectECS(regionIndex,pageNum+1);
                     	}else{
                     		collectECS(regionIndex+1,1);
@@ -209,6 +276,7 @@ function collectRDS(pageNum){
                     	totalnum = data.data.TotalRecordCount;
                     	data.data.Items.DBInstance.forEach(function(value){
                     		result.rds[value.InsId] = value.DBInstanceDescription.substring(0,value.DBInstanceDescription.indexOf("_"));
+                    		result.rds[value.DBInstanceId] = value.DBInstanceDescription.substring(0,value.DBInstanceDescription.indexOf("_"));
                     	});
 		if( pageNum < Math.ceil(totalnum/result.pageSize) ){
 			collectRDS(pageNum + 1);
@@ -216,6 +284,26 @@ function collectRDS(pageNum){
                     },
                     error :  function( jqXHR,  textStatus, errorThrown){
                     	collectRDS(pageNum);
+                    }
+               }); 
+}
+
+function collectSLB(){
+	var totalnum ;
+	$.ajax({   
+                    async : false ,   
+                    cache : false,   
+                    timeout : 5000,   
+                    type : "GET",   
+                    url : "https://slbnew.console.aliyun.com/instance/instance/list.json",   
+                    data : {regionId : "cn-beijing"}, 
+                    success : function(data){
+                    	data.data.forEach(function(value){
+                    		result.slb[value.LoadBalancerId] = value.LoadBalancerName.substring(0,value.LoadBalancerName.indexOf("_"));
+                    	});
+                    },
+                    error :  function( jqXHR,  textStatus, errorThrown){
+                    	collectRDS();
                     }
                }); 
 }
