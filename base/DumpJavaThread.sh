@@ -27,9 +27,9 @@ fi
 for i in `seq $trytimes`
 do
  time=`date +%s`"_"`date +%N`
- restop=`top -p $pid  -H -d 1 -n 1 | head -8 | tail -1`
- nid=`echo $restop | awk '$2 ~ /[0-9]+/{print $2}  $1 ~ /[0-9]+/{print substr($1,5)}'`
- cpu=`echo $restop | awk '$9 ~ /[A-Z]/ {print $10} $8 ~ /[A-Z]/ {print $9}' | awk -F"." '{print $1}'`
+ restop=`top -p $pid -b -H -d 1 -n 1 | head -8 | tail -1`
+ nid=`echo $restop | awk '{print $1}'`
+ cpu=`echo $restop | awk '{print $9}'`
  occur=`expr $cpu \> $level`
  nid16="nid=0x"`echo $nid | awk '{printf "%x",$1}'`
  if [ $occur = "1"  ] ;then
