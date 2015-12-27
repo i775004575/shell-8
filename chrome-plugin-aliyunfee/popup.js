@@ -43,7 +43,7 @@ function handleOrderList4AfterPay(pageNum, startTime, endTime){
                     timeout : 5000,   
                     type : "GET",   
                     url : "https://expense.console.aliyun.com/consumption/getAfterPayBillList.json",   
-                    data : {pageNum : pageNum , pageSize : result.pageSize , startTime : startTime , endTime : endTime , needZeroBill : false , payStatus : "PAY_FINISH" }, 
+                    data : {pageNum : pageNum , pageSize : result.pageSize , startTime : startTime , endTime : endTime , needZeroBill : false  }, 
                     success : function(data){
                     	result['totalnum'] = data.pageInfo.total;
                     	data.data.forEach(function(value){
@@ -105,17 +105,22 @@ function handleOrderDetail4AfterPay(value,pageNum){
                     url:"https://expense.console.aliyun.com/consumption/listDetailInstanceByBillRegion.json",   
                     data:{billId : value.billId ,pageNum : pageNum , pageSize : result.pageSize * 3 }, 
                     success:function(data){
-		data.data.forEach(function(bill){
-			if(parseFloat(bill.baseConfigMap.requirePayAmount)  !== 0){
-				var item = buildItem(value.billId, "afterpay", bill.baseConfigMap.instanceId, bill.baseConfigMap.requirePayAmount, bill.baseConfigMap.productCode);
-				handleRegion(item);
-				handleTeam(item);
-				serialize(item);
-			}
-		});
-		if( pageNum < Math.ceil(data.pageInfo.total/(result.pageSize*3))){
-			handleOrderDetail4AfterPay(value,pageNum+1);
+                    	if(!data.successResponse){
+                    		handleOrderDetail4AfterPay(value,pageNum);
+                    	}else{
+                    		data.data.forEach(function(bill){
+				if(parseFloat(bill.baseConfigMap.requirePayAmount)  !== 0){
+					var item = buildItem(value.billId, "afterpay", bill.baseConfigMap.instanceId, bill.baseConfigMap.requirePayAmount, bill.baseConfigMap.productCode);
+					handleRegion(item);
+					handleTeam(item);
+					serialize(item);
+				}
+			});
+			if( pageNum < Math.ceil(data.pageInfo.total/(result.pageSize*3))){
+				handleOrderDetail4AfterPay(value,pageNum+1);
+                    		}	
                     	}
+		
                     },
                     error : function( jqXHR,  textStatus, errorThrown){
                     	handleOrderDetail4AfterPay(value,pageNum);
