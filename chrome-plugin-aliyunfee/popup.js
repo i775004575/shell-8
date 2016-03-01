@@ -263,7 +263,11 @@ function collectECS(regionIndex , pageNum){
                     success : function(data){
                     	totalnum = data.data.TotalCount;
                     	data.data.Instances.Instance.forEach(function(value){
-                    		result.ecs[value.InstanceId] = value.Tags.Tag[0].TagValue ;
+                                value.Tags.Tag.forEach(function(tv){
+					if( tv.TagKey === 'Team' ){
+						result.ecs[value.InstanceId] = tv.TagValue ;
+					}
+				});
                     	});
 		if( pageNum < Math.ceil(totalnum/(result.pageSize * 2) )){
 			collectECS(regionIndex,pageNum+1);
