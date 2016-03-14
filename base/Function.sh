@@ -272,3 +272,21 @@ dstatex(){
 eclipse(){
   mvn -U eclipse:clean eclipse:eclipse -DdownloadSources=true
 }
+
+eclipse7(){
+  JAVA_HOME=/home/peiliping/Dropbox/dev/JDK/jdk1.7.0_45
+  export JAVA_HOME=$JAVA_HOME      
+  export JRE_HOME=$JAVA_HOME/jre
+  export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH      
+  export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+  mvn -U eclipse:clean eclipse:eclipse -DdownloadSources=true
+}
+
+eclipse8(){
+  JAVA_HOME=/home/peiliping/Dropbox/dev/JDK/jdk1.8.0_51
+  export JAVA_HOME=$JAVA_HOME      
+  export JRE_HOME=$JAVA_HOME/jre
+  export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH      
+  export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+  mvn -U eclipse:clean eclipse:eclipse -DdownloadSources=true
+}
