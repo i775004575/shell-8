@@ -1,5 +1,7 @@
-chrome.browserAction.onClicked.addListener(function (tab) {
-                chrome.windows.create({
+chrome.browserAction.onClicked.addListener(
+    function (tab) {
+    	chrome.windows.create(
+    	{
                     url: 'popup.html#' + tab.windowId,
                     left: 300,
                     top: 200,
@@ -7,4 +9,5 @@ chrome.browserAction.onClicked.addListener(function (tab) {
                     height: 600,
                     type: 'popup'
               });
-});
+    }
+);

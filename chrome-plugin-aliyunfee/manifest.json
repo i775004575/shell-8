@@ -1,23 +1,20 @@
 {
-  "manifest_version": 2,
-  "name": "chrome-plugin-aliyunfee",
-  "description": "AFC",
-  "version": "1.0",
-  "background": {
-    // "scripts": ["popup.js","jquery.js"],
-    "page": "bg.html",
-    "persistent": true
-  },
-  "icons": {
-          "16": "favicon.ico"
-  },
-  "permissions": [
-    "https://*.aliyun.com/"
-  ],
-  // "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-  "browser_action": {
-    "default_title": "Aliyun Fee Compute",
-    // "default_popup": "popup.html",
-    "default_icon": "favicon.ico"
-  }
+    "manifest_version": 2,
+    "name": "Aliyun Chrome Plugin",
+    "description": "ACP",
+    "version": "1.0",
+    "background": {
+        "page": "bg.html",
+        "persistent": true
+    },
+    "icons": {
+        "16": "favicon.ico"
+    },
+    "permissions": [
+        "https://*.aliyun.com/"
+    ],
+    "browser_action": {
+        "default_title": "Aliyun Chrome Plugin",
+        "default_icon": "favicon.ico"
+    }
 }
