@@ -1,327 +1,159 @@
-var result = { data : [] , runner : 1 , t_runner : 1, pageSize : 20, index : 1 ,endpoint : 1000000000 , rds : {} , ecs : {} , kvstore : {} , slb: {} };
+var result = {
+	ecs : {} ,
+	rds : {} ,
+	redis : {} ,
+	slb : {} ,
+	totalNum : 0 ,
+	data : [] , 
+	point : 1 , 
+	startTime : 0 , 
+	endTime : 0
+};
+
 $(document).ready(function(){
-	$("#startpoint").val(result.runner);
-	$("#b_reset").click(function(){
-		result = { data : [] , runner : 1 , t_runner : 1, pageSize : 10, index :1 ,endpoint : 1000000000 };
-		$("#startpoint").val(1);
-		$("#endpoint").val(0);
-		$("#progress").val("0/0");
-		$("#textareaContent").val("");
+	$("#b_load_resource").click(function(){
+		simpleGet('aliyun_ecs_v2.do' , 'ip' , function(data){for ( var key in data ){result.ecs[data[key].InstanceId]=data[key];}});
+		simpleGet('aliyun_rds.do' , 'list' , function(data){data.forEach(function(val){result.rds[val.DBInstanceId]=val;result.rds[val.InsId]=val;})});
+		simpleGet('aliyun_redis.do' , 'list' , function(data){data.forEach(function(val){result.redis[val.InstanceId]=val;})});
+		simpleGet('aliyun_slb.do' , 'list' , function(data){data.forEach(function(val){result.slb[val.LoadBalancerId]=val;})});
 	});
 	$("#b_run_pre").click(function(){
-		collectRDS(1);
-		collectKV(1);
-		collectECS(0,1);
-		result.t_runner = (result.index-1) * result.pageSize +1;
-		result.runner = $("#startpoint").val();
-		result.endpoint = $("#endpoint").val();
-		var st =	Date.parse($("#st").val())-28800000 , et = Date.parse($("#et").val())-28800000;
-		handleOrderList(result.index, st , et, true);
+		init();
+		handleOrderList("/order/getOrderList.json" , 1 , result.startTime , result.endTime , {orderStatus : 'PAID'} , function(value){handleOrderDetail(value);});
 	});
-	$("#b_run_after").click(function(){
-		collectRDS(1);
-		collectKV(1);
-		collectECS(0,1);
-		collectSLB();
-		result.t_runner = (result.index-1) * result.pageSize +1;
-		result.runner = $("#startpoint").val();
-		result.endpoint = $("#endpoint").val();
-		var st =	Date.parse($("#st").val())-28800000 , et = Date.parse($("#et").val())-28800000;
-		handleOrderList4AfterPay(result.index, st , et);
+	$("#b_run_post").click(function(){
+		init();
+		handleOrderList("/consumption/getAfterPayBillList.json" , 1 , result.startTime , result.endTime , {needZeroBill : false} , function(value){handleOrderDetailPost(value ,1);});
 	});
 });
 
-function pushData2Result(){
-	var zoo = result.data.join('');
-	$("#textareaContent").val($("#textareaContent").val() + zoo);
+function init(){
+	result.point = 1 ;
+	result.startTime = Date.parse($("#st").val())-28800000 ;
+	result.endTime = Date.parse($("#et").val())-28800000 ;
 }
 
-function handleOrderList4AfterPay(pageNum, startTime, endTime){
+function handleOrderList(uri , pageNum , startTime , endTime , params , func){
 	$.ajax({   
-                    async : true ,   
-                    cache : false,   
-                    timeout : 5000,   
-                    type : "GET",   
-                    url : "https://expense.console.aliyun.com/consumption/getAfterPayBillList.json",   
-                    data : {pageNum : pageNum , pageSize : result.pageSize , startTime : startTime , endTime : endTime , needZeroBill : false  }, 
-                    success : function(data){
-                    	result['totalnum'] = data.pageInfo.total;
-                    	data.data.forEach(function(value){
-			if(result.runner > result.t_runner++ || result.t_runner>=result.endpoint ){
-				return;
-			}
-			handleOrderDetail4AfterPay(value,1);
-			result.runner++;
-                    	});
-		if(result.index++<Math.ceil(result.totalnum/result.pageSize) ){
-			handleOrderList4AfterPay(pageNum+1,startTime,endTime);	
-                    	}else{
-                    		pushData2Result();
-                    	}
-                    },
-                    error :  function( jqXHR,  textStatus, errorThrown){
-                    	handleOrderList4AfterPay(pageNum , startTime ,endTime);
-                    }
+		async : true ,   
+	              cache : false ,   
+	              timeout : 5000 ,   
+	              type : "GET" ,   
+	              url : "https://expense.console.aliyun.com" + uri ,   
+	              data : $.extend({pageNum : pageNum , pageSize : 20 , startDate : startTime , endDate : endTime , startTime : startTime , endTime : endTime} , params) , 
+	              success : function(data){
+	              	result.totalNum = data.pageInfo.total;
+			data.data.forEach(func);
+	                    	if(result.totalNum > (pageNum + 1) * 20){
+	                    		handleOrderList(uri , pageNum + 1 , startTime , endTime , params , func)
+	                    	}else{
+				$("#textareaContent").val(result.data.join(''));
+	                    	}
+		},
+		error :  function(xhr , status , error){
+			handleOrderList(uri , pageNum , startTime ,endTime , params , func);
+		}
                }); 
 }
 
-function handleOrderList(pageNum, startTime, endTime, isFirst){
+function handleOrderDetailPost(value , pageNum){
 	$.ajax({   
-                    async : true ,   
-                    cache : false,   
-                    timeout : 5000,   
-                    type : "GET",   
-                    url : "https://expense.console.aliyun.com/order/getOrderList.json",   
-                    data : {pageNum : pageNum , pageSize : result.pageSize , startDate : startTime , endDate : endTime , orderStatus : 'PAID' }, 
-                    success : function(data){
-                    	if(isFirst){
-                    		result['totalnum'] = data.pageInfo.total;
-                    	}
-                    	data.data.forEach(function(value){
-			if(result.runner > result.t_runner++ || result.t_runner>=result.endpoint ){
-				return;
-			}
-			handleOrderDetail(value);
-			result.runner++;
-                    	});
-		if(++result.index<result.totalnum/result.pageSize+1 ){
-			handleOrderList(pageNum+1,startTime,endTime,false);	
-                    	}else{
-                    		pushData2Result();
-                    	}
-                    },
-                    error :  function( jqXHR,  textStatus, errorThrown){
-                    	handleOrderList(pageNum , startTime ,endTime ,isFirst);
-                    }
-               }); 
-}
-
-function handleOrderDetail4AfterPay(value,pageNum){
-	$.ajax({   
-                    async:false,   
-                    cache:false,   
-                    timeout:5000,   
-                    type:"GET",   
-                    url:"https://expense.console.aliyun.com/consumption/listDetailInstanceByBillRegion.json",   
-                    data:{billId : value.billId ,pageNum : pageNum , pageSize : result.pageSize * 3 }, 
-                    success:function(data){
-                    	if(!data.successResponse){
-                    		handleOrderDetail4AfterPay(value,pageNum);
-                    	}else{
-                    		data.data.forEach(function(bill){
-				if(parseFloat(bill.baseConfigMap.requirePayAmount)  !== 0){
-					var item = buildItem(value.billId, "afterpay", bill.baseConfigMap.instanceId, bill.baseConfigMap.requirePayAmount, bill.baseConfigMap.productCode);
-					handleRegion(item);
-					handleTeam(item);
-					serialize(item);
-				}
-			});
-			if( pageNum < Math.ceil(data.pageInfo.total/(result.pageSize*3))){
-				handleOrderDetail4AfterPay(value,pageNum+1);
-                    		}	
-                    	}
-		
-                    },
-                    error : function( jqXHR,  textStatus, errorThrown){
-                    	handleOrderDetail4AfterPay(value,pageNum);
-                    }
-               }); 
+		async:false,   
+		cache:false,   
+		timeout:5000,   
+		type:"GET",   
+		url:"https://expense.console.aliyun.com/consumption/listDetailInstanceByBillRegion.json",   
+		data:{billId : value.billId ,pageNum : pageNum , pageSize : 60 }, 
+		success:function(data){
+			if(!data.successResponse){
+				handleOrderDetailPost(value , pageNum);
+			}else{
+				data.data.forEach(function(bill){
+					if(parseFloat(bill.baseConfigMap.requirePayAmount)  !== 0){
+						var item = buildItem(value.billId , "afterpay" , bill.baseConfigMap.instanceId , bill.baseConfigMap.requirePayAmount , bill.baseConfigMap.productCode);
+						pushItem(item)
+					}
+				});
+				if(pageNum < Math.ceil(data.pageInfo.total / 60)){
+					handleOrderDetailPost(value , pageNum +1);
+                    			}	
+                    		}
+			result.point++;
+		},
+		error : function(xhr ,  status , error){
+			handleOrderDetailPost(value , pageNum);
+		}
+	}); 
 }
 
 function handleOrderDetail(value){
 	$.ajax({   
-                    async:false,   
-                    cache:false,   
-                    timeout:5000,   
-                    type:"GET",   
-                    url:"https://expense.console.aliyun.com/consumption/getOrderDetail.json",   
-                    data:{orderId : value.orderId }, 
-                    success:function(data){
-		data.data.orderLineList.forEach(function(orderLine){
-			if(typeof orderLine.productPurchases !== 'undefined'){
-				orderLine.productPurchases.forEach(function(purchase){
-					var item = buildItem(value.orderId, value.orderType, purchase.instanceId, orderLine.tradeAmount/orderLine.quantity, orderLine.commodityCode);
-					handleRegion(item,orderLine.instanceComponents);
-					handleTeam(item);
-					serialize(item);
-				});
-			}else{
-				var item = buildItem(value.orderId, value.orderType, orderLine.instanceId, orderLine.originalAmount, orderLine.commodityCode);
-				handleRegion(item,orderLine.instanceComponents);
-				handleTeam(item);
-				serialize(item);
-			}
-		});
-                    },
-                    error : function( jqXHR,  textStatus, errorThrown){
-                    	handleOrderDetail(value);
-                    }
+		async:false ,
+		cache:false ,
+		timeout:5000 ,
+		type:"GET" ,
+		url:"https://expense.console.aliyun.com/consumption/getOrderDetail.json" ,   
+		data:{orderId : value.orderId} , 
+		success:function(data){
+			data.data.orderLineList.forEach(function(orderLine){
+				if(typeof orderLine.productPurchases === 'undefined'){
+					var item = buildItem(value.orderId, value.orderType, orderLine.instanceId, orderLine.originalAmount, orderLine.commodityCode);
+					pushItem(item);
+				}else{
+					orderLine.productPurchases.forEach(function(purchase){
+						var item = buildItem(value.orderId, value.orderType, purchase.instanceId, orderLine.tradeAmount/orderLine.quantity, orderLine.commodityCode);
+						pushItem(item);
+					});	
+				}
+			});
+			result.point++;
+                    	},
+                    	error : function(xhr ,  status , error){
+                    		handleOrderDetail(value);
+                    	}
                }); 
 }
 
-function handleRegion(item,instanceComponents){
-	if(typeof instanceComponents !== 'undefined'){
-		instanceComponents.forEach(function(temp){
-			if(temp.componentName === '可用区'){
-				item['region'] = temp.properties[0].value.substring(0,temp.properties[0].value.lastIndexOf("-"));
-			}
-		});
-	}
-	if(typeof item.region === 'undefined'){
-		item['region'] = "unknown";
-	}
+function simpleGet(uri , method , func){
+	$.ajax({   
+		async : false ,   
+		cache : false ,   
+		timeout : 5000 ,   
+		type : "GET",   
+		url : "http://123.57.174.19:81/" + uri ,   
+		data : {method : method} , 
+		success : func ,
+                    	error :  function(xhr,  status, error){
+ 	                   	simpleGet(uri , method , func);
+                 	}
+               }); 
 }
 
-function handleTeam(item){
-	if(typeof item.team !== 'undefined'){
-		return ;
-	}
+function buildItem(orderId , orderType , instanceId , price , type){
+	var item = {orderId : orderId , orderType : orderType , instanceId : instanceId , price : price , type : type , team : '-'};
 	if(typeof item.type === 'undefined' ){
-		item['team'] = "Other-unknown";
-		return ;
-	}
-	if(typeof item.instanceId === 'undefined' || typeof item.region === 'undefined' ){
-		item['team'] = "Other-" + item.type;
-		return ;
-	}
-	if(item.type === 'rds' || item.type === 'rords'){
-		item['team'] = result.rds[item.instanceId];
+		item.type = '-'
+	}else if(item.type === 'rds' || item.type === 'rords'){
+		if(result.rds[instanceId])
+			item.team = result.rds[instanceId].DBInstanceDescription.substring(0,result.rds[instanceId].DBInstanceDescription.indexOf("_"));	
 	}else if(item.type === 'prepaid_kvstore' || item.type === 'kvstore'){
-		item['team']= result.kvstore[item.instanceId];
+		if(result.redis[instanceId])
+			item.team = result.redis[instanceId].InstanceName.substring(0,result.redis[instanceId].InstanceName.indexOf("_"))
+	}else if(item.type === 'vm' || item.type === 'ecs'){
+		if(result.ecs[instanceId])
+			item.team = result.ecs[instanceId].Tags.Team;
 	}else if(item.type === 'slb'){
-		item['team']= result.slb[item.instanceId];
-	}else{
-		item['team']= result.ecs[item.instanceId];
+		if(result.slb[instanceId])
+			item.team = result.slb[instanceId].LoadBalancerName.substring(0,result.slb[instanceId].LoadBalancerName.indexOf("_"));	
 	}
-	if(typeof item.team === 'undefined'){
-		item['team'] = "Other-" + item.type;
-	}
+	return item;
 }
 
-function buildItem(orderId,orderType,instanceId,price,type){
-	var t_item = {} ;
-	t_item['index'] = result.runner;
-	t_item['orderId'] = orderId;
-	t_item['orderType'] = orderType;
-	t_item['price'] =price;
-	t_item['instanceId'] = instanceId;
-	t_item['type'] = type;
-	return t_item;
-}
-
-function serialize(item){
-	var t_log = [];
+function pushItem(item){
+	var log = [];
 	for(t_item_log in item){ 
-		t_log.push(item[t_item_log]);
+		log.push(item[t_item_log]);
 	}
-	progress(t_log.join(',')+"\n");
-}
-
-function progress(log){
-	$("#progress").val(result.runner + "/" + result.totalnum);
-	$("#startpoint").val(result.runner);
-	result.data.push(log); 
-}
-
-function collectKV(pageNum){
-	var totalnum ;
-	$.ajax({   
-                    async : false ,   
-                    cache : false,   
-                    timeout : 5000,   
-                    type : "GET",   
-                    url : "https://kvstore.console.aliyun.com/instance/describeInstances.json",   
-                    data : {pageNumber : pageNum , pageSize : result.pageSize }, 
-                    success : function(data){
-                    	totalnum = data.data.TotalCount;
-                    	data.data.Instances.KVStoreInstance.forEach(function(value){
-                    		result.kvstore[value.InstanceId] = value.InstanceName.substring(0,value.InstanceName.indexOf("_")) ;
-                    	});
-		if( pageNum < Math.ceil(totalnum/result.pageSize) ){
-			collectKV(pageNum+1);
-                    	}
-                    },
-                    error :  function( jqXHR,  textStatus, errorThrown){
-                    	collectKV(pageNum);
-                    }
-               }); 	
-}
-
-function collectECS(regionIndex , pageNum){
-	var regionlist = [ "ap-southeast-1","cn-shenzhen","cn-qingdao","cn-beijing","cn-shanghai","cn-hongkong","cn-hangzhou","us-west-1"];
-	if(regionIndex +1 >= regionlist.length){
-		return ;
-	}
-	var totalnum ;
-	$.ajax({   
-                    async : false ,   
-                    cache : false,   
-                    timeout : 5000,   
-                    type : "GET",   
-                    url : "https://ecs.console.aliyun.com/instance/instance/list.json",   
-                    data : {pageNumber : pageNum , pageSize : result.pageSize * 2 , regionId : regionlist[regionIndex] }, 
-                    success : function(data){
-                    	totalnum = data.data.TotalCount;
-                    	data.data.Instances.Instance.forEach(function(value){
-                                value.Tags.Tag.forEach(function(tv){
-					if( tv.TagKey === 'Team' ){
-						result.ecs[value.InstanceId] = tv.TagValue ;
-					}
-				});
-                    	});
-		if( pageNum < Math.ceil(totalnum/(result.pageSize * 2) )){
-			collectECS(regionIndex,pageNum+1);
-                    	}else{
-                    		collectECS(regionIndex+1,1);
-                    	}
-                    },
-                    error :  function( jqXHR,  textStatus, errorThrown){
-                    	collectECS(regionIndex,pageNum);
-                    }
-               }); 	
-}
-
-function collectRDS(pageNum){
-	var totalnum ;
-	$.ajax({   
-                    async : false ,   
-                    cache : false,   
-                    timeout : 5000,   
-                    type : "GET",   
-                    url : "https://rdsnew.console.aliyun.com/instance/describeDBInstanceList.json",   
-                    data : {pageNumber : pageNum , pageSize : result.pageSize , region : "all" }, 
-                    success : function(data){
-                    	totalnum = data.data.TotalRecordCount;
-                    	data.data.Items.DBInstance.forEach(function(value){
-                    		result.rds[value.InsId] = value.DBInstanceDescription.substring(0,value.DBInstanceDescription.indexOf("_"));
-                    		result.rds[value.DBInstanceId] = value.DBInstanceDescription.substring(0,value.DBInstanceDescription.indexOf("_"));
-                    	});
-		if( pageNum < Math.ceil(totalnum/result.pageSize) ){
-			collectRDS(pageNum + 1);
-                    	}
-                    },
-                    error :  function( jqXHR,  textStatus, errorThrown){
-                    	collectRDS(pageNum);
-                    }
-               }); 
-}
-
-function collectSLB(){
-	var totalnum ;
-	$.ajax({   
-                    async : false ,   
-                    cache : false,   
-                    timeout : 5000,   
-                    type : "GET",   
-                    url : "https://slbnew.console.aliyun.com/instance/instance/list.json",   
-                    data : {regionId : "cn-beijing"}, 
-                    success : function(data){
-                    	data.data.forEach(function(value){
-                    		result.slb[value.LoadBalancerId] = value.LoadBalancerName.substring(0,value.LoadBalancerName.indexOf("_"));
-                    	});
-                    },
-                    error :  function( jqXHR,  textStatus, errorThrown){
-                    	collectRDS();
-                    }
-               }); 
+	$("#progress").val(result.point + "/" + result.totalNum);
+	result.data.push(log.join(',')+"\n"); 
 }
