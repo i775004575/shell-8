@@ -19,11 +19,11 @@ $(document).ready(function(){
 	});
 	$("#b_run_pre").click(function(){
 		init();
-		handleOrderList("/order/getOrderList.json" , 1 , result.startTime , result.endTime , {orderStatus : 'PAID'} , function(value){handleOrderDetail(value);});
+		handleOrderList("/order/getOrderList.json" , 1 , result.startTime , result.endTime , {orderStatus : 'PAID'} , function(value){handleOrderDetail(value);result.point++;});
 	});
 	$("#b_run_post").click(function(){
 		init();
-		handleOrderList("/consumption/getAfterPayBillList.json" , 1 , result.startTime , result.endTime , {needZeroBill : false} , function(value){handleOrderDetailPost(value ,1);});
+		handleOrderList("/consumption/getAfterPayBillList.json" , 1 , result.startTime , result.endTime , {needZeroBill : false} , function(value){handleOrderDetailPost(value ,1);result.point++;});
 	});
 });
 
@@ -44,7 +44,7 @@ function handleOrderList(uri , pageNum , startTime , endTime , params , func){
 	              success : function(data){
 	              	result.totalNum = data.pageInfo.total;
 			data.data.forEach(func);
-	                    	if(result.totalNum > (pageNum + 1) * 20){
+	                    	if(result.totalNum > pageNum * 20){
 	                    		handleOrderList(uri , pageNum + 1 , startTime , endTime , params , func)
 	                    	}else{
 				$("#textareaContent").val(result.data.join(''));
@@ -78,7 +78,6 @@ function handleOrderDetailPost(value , pageNum){
 					handleOrderDetailPost(value , pageNum +1);
                     			}	
                     		}
-			result.point++;
 		},
 		error : function(xhr ,  status , error){
 			handleOrderDetailPost(value , pageNum);
@@ -106,7 +105,6 @@ function handleOrderDetail(value){
 					});	
 				}
 			});
-			result.point++;
                     	},
                     	error : function(xhr ,  status , error){
                     		handleOrderDetail(value);
