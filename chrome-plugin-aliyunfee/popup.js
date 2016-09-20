@@ -7,7 +7,8 @@ var result = {
 	data : [] , 
 	point : 1 , 
 	startTime : 0 , 
-	endTime : 0
+	endTime : 0 ,
+	csrf : undefined
 };
 
 $(document).ready(function(){
@@ -29,10 +30,52 @@ $(document).ready(function(){
 		handleRenewList(1);
 	});
 	$("#b_ecs_renew").click(function(){
+		getCSRFToken();
+		loopIdsFromConsole('modify');
 	});
 	$("#b_ecs_cancel_renew").click(function(){
+		getCSRFToken();
+		loopIdsFromConsole('cancel');
 	});
 });
+
+function loopIdsFromConsole(operation){
+	var ids = $("#textareaContent").val().split("\n");
+	$("#textareaContent").val("");
+	result.data = [];
+	ids.forEach(function(id){
+		if($.trim(id) != ''){
+			$.ajax({
+				async : false ,
+				cache : false ,
+				timeout : 5000 ,
+				type : "POST" ,
+				url : "https://renew.console.aliyun.com/renew/setAutoRenew.json" ,
+				data : { operation : operation , duration : 1 , resourceType : 'ecs' , instIds : id , _csrf_token : result.csrf} ,
+				success : function(data){
+					pushItem({id : id , result : data.successResponse})
+				}
+			})
+		}
+	});
+	$("#textareaContent").val(result.data.join(''));
+}
+
+function getCSRFToken(){
+	if(!result.csrf){
+		$.ajax({
+			async : false ,
+			cache : false ,
+			timeout : 5000 , 
+			type : "GET" ,  
+			url : "https://renew.console.aliyun.com/#/ecs" ,
+			data : {} ,
+			success : function(data){
+				result.csrf = data.match(/SEC_TOKEN\:\s\"(\w+)\"/)[1];
+			}
+		});	
+	}
+}
 
 function handleRenewList(pageNum){
 	$.ajax({
