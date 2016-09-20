@@ -25,7 +25,45 @@ $(document).ready(function(){
 		init();
 		handleOrderList("/consumption/getAfterPayBillList.json" , 1 , result.startTime , result.endTime , {needZeroBill : false} , function(value){handleOrderDetailPost(value ,1);result.point++;});
 	});
+	$("#b_ecs_no_auto_renew").click(function(){
+		handleRenewList(1);
+	});
+	$("#b_ecs_renew").click(function(){
+	});
+	$("#b_ecs_cancel_renew").click(function(){
+	});
 });
+
+function handleRenewList(pageNum){
+	$.ajax({
+		async : true ,
+		cache : false ,
+		timeout : 5000 , 
+		type : "GET" ,  
+		url : "https://renew.console.aliyun.com/renew/getAvailbleInstances.json" ,
+		data : {commodityCode : 'vm' , currentPage : pageNum , pageSize : 50 , searchType : 'instanceId'} ,
+		success : function(data){
+			result.totalNum = data.pageInfo.total;
+			data.data.forEach(function(value){
+				if(!value.autoRenewal){
+					var ecsInst = result.ecs[value.instanceName] ;
+					var item = {Id : value.instanceName , Ip : ecsInst.InnerIp , Status : ecsInst.Status};
+					pushItem($.extend(item , ecsInst.Tags));
+				}
+				result.point++;
+			});
+			if(result.totalNum > pageNum * 50){
+	                    		handleRenewList(pageNum + 1);
+	                    	}else{
+	                    		pushItem({});
+				$("#textareaContent").val(result.data.join(''));
+	                    	}
+		},
+		error :  function(xhr , status , error){
+			handleRenewList(pageNum)
+		}
+	});
+}
 
 function init(){
 	result.point = 1 ;
