@@ -5,13 +5,13 @@ function sleep(n)
 end
 
 function handle(event)
-    for a , b , c , d , e , f ,g , h , i , j , k , l in string.gmatch(event , '([%d.]+) ([%d.:]+) ([%d.]+) ([%d.-]+) %[(.+)%] "([%a]+) (.+)" ([%d]+) ([%d]+) ([%d]+) "(.+)" "(.+)"') do
-        local json = cjson.encode({ a = a , b = b , c = c , d = d , e = e , f = f , g = g , h = h , i = i , j = j , k = k , i = i })
-        print(json)
+    for time , remote_ip , upstream_ip , rt , method , status_code , url , request_size , response_size , refer, ua in string.gmatch(event , '"(.+)" ([%d.]+) ([%d.:]+) ([%d.]+) ([%a]+) ([%d]+) "(.+)" ([%d]+) ([%d]+) "(.+)"') do
+        local json = cjson.encode({ time = time , remote_ip = remote_ip , upstream_ip = upstream_ip , rt = rt , method = method , status_code = status_code , url = url , response_size = response_size , refer = refer , ua = ua})
+        --print(json)
     end
 end
 
-local file = io.open("/oneapm/log/nginx/bi-dc_20160811.log", "r")
+local file = io.open("/oneapm/log/nginx/bi_dc.log", "r")
 local pos , BUFFERSIZE = file:seek("end") , 2^13
 local left = ""
 
