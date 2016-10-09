@@ -1,6 +1,0 @@
-local cjson = require "cjson"
-local st = '"29/Sep/2016:03:11:06 +0800" 59.172.5.114 10.44.157.105:8080 0.003 GET 200 "http://bi-collector.oneapm.com/beacon/error/dotnet/1/uV~JzuMrmFMEubyB/?a=2271821&pl=1475077837485&v=411.4.9%20&to=FTMjFSo0WyQkVRJfCix5BS4sG1AjBlkIQhctOi0kKnphLTxOVBktLTsk&tbt=ch&tbv=45&phost=t.fx168.com&xhr=%5B%7B%22params%22:%7B%22method%22:%22GET%22,%22host%22:%22t.fx168.com:80%22,%22pathname%22:%22/Handler/FormatQuoteData.ashx%22,%22status%22:200%7D,%22metrics%22:%7B%22count%22:1,%22duration%22:%7B%22t%22:51%7D,%22rxSize%22:%7B%22t%22:4939%7D,%22cbTime%22:%7B%22t%22:0%7D,%22time%22:%7B%22t%22:12027503%7D%7D%7D%5D&mbi=2" 852 0 "http://t.fx168.com/profile/1436485053497" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36"'
-for time , remote_ip , upstream_ip , rt , method , status_code , url , request_size , response_size , refer, ua in string.gmatch(st , '"(.+)" ([%d.]+) ([%d.:]+) ([%d.]+) ([%a]+) ([%d]+) "(.+)" ([%d]+) ([%d]+) "(.+)"') do
-    local json = cjson.encode({ time = time , remote_ip = remote_ip , upstream_ip = upstream_ip , rt = rt , method = method , status_code = status_code , url = url , response_size = response_size , refer = refer , ua = ua})
-    print(json)
-end
